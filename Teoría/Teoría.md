@@ -226,6 +226,262 @@
 
 <h1 align="center">Clase 3 - 8 de abril, 2025</h1>
 
+## Criptografía
+
+### Concepto
+
+- La criptografía es una ciencia que diseña funciones o dispositivos capaces de transformar mensajes legibles en mensajes cifrados de manera tal que esta transformación (cifrar) y su transformación inversa (descifrar) sólo pueden ser factibles con el conocimiento de una o más llaves.
+- Cifrar consiste en convertir un mensaje legible a un dato sin sentido aparente (mensaje cifrado) usando una llave.
+- El creador del mensaje cifrado comparte la técnica de descifrado y la llave solo con destinatarios previstos.
+- Existen dos tipos de criptosistemas:
+  - Sistemas de cifrado simétrico, también conocidos como sistemas de clave privada.
+  - Sistemas de cifrado asimétrico, también conocidos como sistemas de clave pública.
+
+### Criptografía simétrica
+
+- El emisor:
+  - **Genera** la clave compartida.
+  - **Distribuye** la clave compartida.
+  - El mensaje original es encriptado usando la clave compartida.
+  - Se obtiene como resultado un **mensaje encriptado**.
+  - Envía el mensaje encriptado al destinatario.
+- El receptor:
+  - Desencripta el mensaje usando el mismo sistema de cifrado y la misma clave compartida del emisor.
+  - Se obtiene como resultado el **mensaje original**.
+- Existen dos modos de operación:
+  - **Cifrado en bloques**: Se usa para cifrar archivos.
+  - **Cifrado de flujo**: Se usa para cosas en tiempo real.
+- **Ventajas ✅**:
+  - Gran velocidad de cifrado y descifrado.
+  - No aumenta el tamaño del mensaje al cifrar.
+- **Desventajas ❌**:
+  - La seguridad depende de un secreto compartido entre emisor y receptor.
+  - La administración de claves no es escalable, es decir si queremos comunicar el mensaje a muchos destinatarios, tendriamos que compartir la clave con cada uno de ellos uno por uno.
+- Ejemplos:
+  - 3DES.
+  - RC5.
+  - IDEA.
+  - AES
+  - Blowfish.
+
+### Criptografía asimétrica
+
+- Se usan dos claves, una pública y una privada:
+  - La clave pública se puede compartir con cualquier persona.
+  - La clave privada solo es conocida por el dueño y nadie más.
+- Las claves están matemáticamente relacionadas entre sí.
+- Ambas claves pueden ser usadas para encriptar y desencriptar, dependiendo del modo de operación utilizado.
+- Este tipo de criptografía posee dos modos, modo encripción y modo autenticación.
+  - En el modo **encripción**, el emisor encripta con clave la pública del receptor, y el receptor desencripta con su clave privada. Esto garantiza confidencialidad.
+  - En el modo **autenticación**, el emisor encripta con su clave privada, y el receptor desencripta con la clave pública del emisor. Esto garantiza integridad y no repudio.
+- **Ventajas ✅**:
+  - No hace falta intercambiar claves secretas.
+  - A través de sus dos modos se cubre gran parte de los requisitos de seguridad de la información.
+- **Desventajas ❌**:
+  - Requiere mayor potencia de cómputo para cifrar y descifrar que el método simétrico.
+  - El mensaje cifrado es de mayor tamaño que el original.
+- Ejemplos:
+  - Diffie-Hellman.
+  - RSA.
+  - DSA.
+  - ElGamal.
+  - CCE.
+
+### Resumen de tipos de criptografía
+
+![Resumen de tipos de criptografía](https://i.imgur.com/KH6Rp9P.png)
+
+### Funciones de hash
+
+- Son funciones de transformación que toman un input de tamaño variable y retornan un string de longitud **fija**, conocido como “message digest”.
+- Estas funciones son determinísticas: mismo input siempre dará el mismo hash de output.
+- Son bastante rápidas de calcular.
+- Es inviable obtener el mensaje original a partir del hash.
+- Un pequeño cambio en el input cambia drasticamente el valor del hash.
+- Se usan en:
+  - Criptografía asimétrica.
+  - Firma digital.
+  - Almacenamiento de contraseñas.
+- **Colisiones**:
+  - Una colisión en hash ocurre cuando dos entradas diferentes a una función hash producen el mismo output (hash).
+- **Problemas**:
+  - Las debilidades en una función de hash están asociadas con la posibilidad de manipular las colisiones.
+  - Lo rápidas que son estas funciones las hace vulnerables a ataques de fuerza bruta.
+- Ejemplos:
+  - MD5 (128 bits).
+  - SHA-1 (160 bits).
+  - SHA-2.
+  - SHA-3.
+
+## Esteganografía
+
+### Definición
+
+- Técnica para ocultar un mensaje secreto dentro de un mensaje ordinario y extraerlo en el destino para mantener la confidencialidad de los datos.
+- Arte de ocultar un archivo de texto, imagen, video o audio dentro de otro archivo, llamado **portador**, de modo que no sea perceptible su existencia.
+- El objetivo es ocultar la información lo suficientemente bien como para que los destinatarios involuntarios no sospechen que el medio esteganográfico contiene datos ocultos.
+- Los medios portadores preferidos (por sus características) son archivos multimedia (imágenes, audio y vídeo).
+
+### Tipos
+
+- Hay dos tipos de esteganografía:
+  - **Pura**: Se supone que la víctima (quien ve el mensaje) no conoce nada sobre el estego-algoritmo. Por lo tanto se usa seguridad basada en oscuridad.
+  - **De clave secreta**: El estego-algoritmo se parametriza con una clave, que define como aplicar el algoritmo.
+
+## Ofuscación
+
+### Definición
+
+- Acto intencional de hacer un cambio no destructivo, ya sea en el código fuente de un programa informático, en el código intermedio (bytecodes) o en el código máquina cuando el programa está en forma compilada o binaria.
+- Es decir, se cambia el código manteniendo el funcionamiento original, para dificultar su entendimiento. De esta forma **se dificulta los intentos de ingeniería inversa y desensamblado que tienen la intención de obtener una forma de código fuente cercana a la forma original**.
+- Ejemplo:
+
+![Ejemplo de ofuscación](https://i.imgur.com/tnLp4vJ.png)
+
+## PGP (Pretty Good Privacy)
+
+### Definición
+
+- PGP es un conjunto de programas creados por Phil Zimerman para proteger información. Es un **criptosistema híbrido** que usa criptografía de clave pública, criptografía simétrica y funciones de hash.
+- Al convertirse en uno de los mecanismos más populares para utilizar criptografía, la IETF tomó como base su diseño para crear el estándar OpenPGP.
+- Además de proteger los datos en tránsito también permite proteger los datos almacenados en discos, copias de seguridad, etc.
+
+### PGP VS OpenPGP VS GNUPG
+
+- **PGP**: Actualmente propiedad de Symantec.
+- **OpenPGP**: Estándar aprobado por el IETF (RFC 4880) que describe cualquier mecanismo de cifrado que use procesos interoperables con PGP.
+- **GnuPG**: Solución que sigue los estándares de OpenPGP desarrollada por la Free Software Fundation.
+
+### Claves
+
+- En PGP cada usuario genera un par de claves, una pública y otra privada.
+  - La clave pública es la que se puede compartir.
+  - La clave privada nunca debe ser compartida. Esta clave contendrá el header "PGP PRIVATE KEY BLOCK".
+  - Cada clave desencripta un mensaje que fue encriptado con la otra.
+
+### Fingerprint
+
+- Las claves PGP tienen un fingerprint asociado, que es una versión corta de las mismas.
+- Por ejemplo:
+  - Long Key ID: D834 298F FEFB D9E2 (64 bits).
+  - Short Key ID: FEFB D9E2 (32 bits).
+
+### Certificado de revocación
+
+- Una vez generado el par de claves, es recomendable generar un certificado de revocación que podrá ser utilizado en caso que la clave privada haya sido filtrada.
+- Ante la presunción del leak de la clave, se debe subir el certificado de revocación a los servidores de claves para informar que la clave ya no es más válida.
+
+### Servidores de claves
+
+- Los servidores de claves son repositorios utilizados para **compartir las claves públicas**.
+- Es importante remarcar que cualquiera puede generar y distribuir claves para cualquier nombre y dirección de correo.
+- El servidor más conocido es [el que mantiene el MIT](https://keyserver.ubuntu.com/), pero todos se encuentran sincronizados.
+
+### Encripción vs firma
+
+- Cuando se encripta un mensaje o un archivo, aumenta el nivel de **confidencialidad**.
+- Cuando se firma, se aumenta el nivel de **integridad y autenticidad**.
+- Un mensaje puede ser cifrado y luego firmado o firmado y luego cifrado.
+
+### Red de confianza
+
+- Una red de confianza es un concepto usado para establecer qué tan confiable es un par de claves que se genera en un esquema descentralizado.
+
+### Anillos de claves
+
+- **Anillo de claves públicas**: Archivo en el que se guardan las claves públicas del usuario propietario y las claves públicas importadas.
+- **Anillo de claves privadas**: archivos en el que se guardan la/s clave/s privada/s del usuario propietario.
+- Si podemos confirmar la persona que utiliza una clave en particular, podemos firmar dicha clave con nuestra clave privada. Esto permitirá:
+  - Certificar que dicha clave efectivamente pertenece a esa persona.
+  - Evitar la manipulación de nuestro anillo de claves por parte de un tercero.
+- Al igual que las claves públicas, las firmas realizadas a una clave también se pueden subir.
+- Las reuniones donde se validan, intercambian y firman claves son conocidas como **PGP Parties**.
+
+### Esquema de confianza
+
+- La confianza es subjetiva.
+- Yo puedo confiar en la clave de una persona, pero no confiar en **las claves en las que esa persona confía**.
+- Se pueden establecer relaciones de confianza indirectas.
+
+### Ventajas ✅
+
+- Su fuerte radica en la facilidad para generar claves y gestionarlas, con un amplio campo de aplicación:
+  - Comunicación entre individuos en correo electrónico.
+  - Cifrado de archivos y mensajes.
+- Existen versiones libres y comerciales que implementan PGP, para manejo de claves y operaciones de criptografía, las cuales están disponibles para gran variedad de plataformas.
+- Está basado en algoritmos extensamente revisados y considerados ampliamente seguros (RSA, DSS y Diffie-Hellman; CAST-128, IDEA y 3DES; SHA-1).
+- El software y la documentación están disponibles en Internet.
+- Existen versiones comerciales y libres que implementan los servidores de clave PGP.
+- No fue desarrollado por ningún gobierno ni organización de creación de estándares, lo cual lo hace atractivo.
+
+### Desventajas ❌
+
+- La gestión de claves en PGP se basa en la confianza mutua: "los amigos de tus amigos son mis amigos".
+- En un sistema abierto en Internet como el comercio electrónico, esta situación y otras más que pueden darse en este sistema de gestión de claves de confianza mutua, resulta inaceptable.
+
+### Aplicaciones
+
+- Correo electrónico.
+- Thunderbird.
+- IPGMail para IOS.
+- K-9 Mail para Android.
+- Gmail mediante extensión para Google Chrome (FlowCrypt).
+- Firma de código (GitHub).
+- Cifrado de archivos / disco (gpg4win).
+
+### Guía de uso básico
+
+1. Generar el par de claves (pública y privada).
+2. Configurar cliente de correo.
+3. Resguardar la clave privada adecuadamente.
+4. Intercambiar con el círculo de confianza la clave pública → PGP-parties.
+5. Incorporar claves públicas de terceros a tu llavero → Fingerprint.
+   1. einar@linti.unlp.edu.ar → Fingerprint **699B 5CD9 4C66 19BC DCE6 893D E4ED C070 3DB4 692E**.
+   2. sandrazilla@gmail.com → Fingerprint **bb17 e159 5aad 556d 74e4 2086 9983 2da7 4b41 d3e3**.
+   3. mcarbone@linti.unlp.edu.ar → Fingerprint **6FD4 2FA2 E23F 15E4 5019 0449 B0FC 335B C2C3 F158**.
+   4. Forma grupo y enviar el mail con la conformación del grupo cifrado y firmado a las cuentas de correo de la cátedra.
+
+[Más información](https://keyserver.ubuntu.com/).
+
+### PGP y Triángulo CIA
+
+- Si firmo un mail con mi clave privada, aseguro **integridad**:
+  - El mensaje no se puede alterar ya que la firma no coincide y nadie lo puede escribir originalmente, excepto el dueño de la privada.
+- Si encripto un mensaje con la clave pública del destinatario, aseguro **confidencialidad**:
+  - Nadie puede leer el mensaje, excepto el dueño de la clave privada que se corresponde con la pública utilizada.
+- Por ende, si realizo ambas cosas, aseguro **tanto integridad como confidencialidad**.
+- Si en cada caso el destinatario pierde su clave privada, se pierde la **disponibilidad**.
+- Si alguien se roba la clave privada del emisor, se pierde la **integridad**.
+- Si alguien se roba la clave privada del destinatario, se pierde la **confidencialidad**.
+
+---
+
+<h1 align="center">Clase 4 - 15 de abril, 2025</h1>
+
+## ?
+
+---
+
+<h1 align="center">Clase 5 - ? de ?, 2025</h1>
+
+## ?
+
+---
+
+<h1 align="center">Clase 6 - ? de ?, 2025</h1>
+
+## ?
+
+---
+
+<h1 align="center">Clase 7 - ? de ?, 2025</h1>
+
+## ?
+
+---
+
+<h1 align="center">Clase 8 - ? de ?, 2025</h1>
+
 ## ?
 
 ---
