@@ -458,7 +458,194 @@
 
 <h1 align="center">Clase 4 - 15 de abril, 2025</h1>
 
-## ?
+## OWASP (Open Web Application Security Project)
+
+### Definición
+
+- OWASP es un proyecto conformado por una comunidad mundial libre y abierta que se enfoca en mejorar la seguridad del software.
+- Busca ayudar a las organizaciones a desarrollar y mantener aplicaciones confiables.
+- Posee su [página web](https://www.owasp.org/).
+
+### Componentes de OWASP
+
+- **OWASP Top Ten**:
+  - Es un documento de concientización para desarrolladores y seguridad de aplicaciones web.
+  - Riesgos de seguridad más críticos para las aplicaciones web.
+  - Representa un amplio consenso sobre los riesgos de seguridad más críticos para las aplicaciones web.
+  - Contiene 10 categorías, cada una con 5 secciones:
+    - Riesgo (vectores de ataque, debilidades de seguridad, impacto tecnológico y del negocio).
+    - La aplicación es vulnerable?
+    - Cómo se previene.
+    - Ejemplos de escenarios de ataques.
+    - Referencias.
+  - Cada categoría representa un riesgo de seguridad pero cada riesgo es genérico.
+  - Por ejemplo **A3: Injection** representa cualquier tipo de inyección a una aplicación, pero existen muchísimas subcategorías de este riesgo (SQL injection, Command injection, Template injection, etc) que deben estudiarse de forma específica para obtener resultados.
+  - Para estos casos deben usarse las referencias de la categoría que suelen ser muy útiles a la hora de estudiar el riesgo de la categoría de manera más específica.
+- **OWASP Web Security Testing Guide**:
+  - Controles de seguridad que se deben contemplar a la hora de realizar pentesting en aplicaciones web.
+- **OWASP Cheat Sheet Series**:
+  - Una colección concisa de información de alto valor sobre temas específicos de seguridad de aplicaciones.
+  - Básicamente resúmenes sobre temáticas que complementan a los otros documentos.
+- **OWASP Application Security Verification Standard**:
+  - Ofrece una lista completa de requisitos, controles y pruebas de seguridad de aplicaciones web que puede utilizar para determinar el alcance, crear y verificar aplicaciones web y móviles seguras.
+- **OWASP DefectDojo**:
+  - Tracking de pentesting y reporte.
+- **OWASP Zed Attack Proxy (ZAP)**:
+  - Herramienta de pentesting tipo burp.
+- **OWASP in SDLC**:
+  - Ejemplo del uso de mucha de las herramientas de owasp en el SDLC.
+- **OWASP API Top Ten**
+- **OWASP Mobile Security**
+- **OWASP Cloud-Native Application Security Top Ten**
+- **OWASP Kubernetes Top Ten**
+- **OWASP Docker Top Ten**
+- **OWASP Top Ten Privacy Risks**
+- **OWASP Attacks List**:
+  - Enumeración de ataques a aplicaciones web.
+- **OWASP Vulnerabilities**:
+  - Enumeración de vulnerabilidades específicas.
+- **OWASP Proactive Controls**:
+  - Una lista de técnicas de seguridad que deben tenerse en cuenta para cada proyecto de desarrollo de software.
+  - Están ordenados por orden de importancia, siendo el control número 1 el más importante.
+  - Fue escrito por desarrolladores para ayudar a nuevos desarrolladores a asegurar la seguridad en el desarrollo de software.
+- **OWASP Vulnerable Web Applications Directory**
+- **OWASP Automated Threats to Web Applications**:
+  - Enumeración de varios ataques automáticos a aplicaciones web.
+  - También define un lenguaje estándar para referenciar a estos ataques.
+
+### Evolución del OWASP Top Ten
+
+- Se genera una nueva versión cada 3 o 4 años.
+- CWE (Common Weakness Enumeration): Knowing the weaknesses that result in vulnerabilities means software developers, hardware designers, and security architects can eliminate them before deployment, when it is much easier and cheaper to do so.
+- Historial:
+  - Top Ten 2003.
+  - Top Ten 2004.
+  - Top Ten 2007.
+  - Top Ten 2010.
+  - Top Ten 2013.
+  - Top Ten 2017.
+  - Top Ten 2021 (actual)
+  - Top Ten 2025 (se publicará en algun momento este año).
+- Evolución del top ten de 2007 a 2017:
+
+![Evolución del top ten de 2007 a 2017](https://i.imgur.com/PaasP8X.png)
+
+- Entre el Top Ten 2007 y el de 2010 se cambió la metodología de selección: se empezó a centrar en riesgos y no en cantidad de vulnerabilidades:
+
+![Cambio de metodología del Top Ten de 2007 a 2010](https://i.imgur.com/4F8x6bj.png)
+
+- Evolución 2010 a 2013:
+
+![2010 a 2013](https://i.imgur.com/8IwhEKM.png)
+
+- Evolución 2013 a 2017:
+
+![2013 a 2017](https://i.imgur.com/U88Pa6S.png)
+
+- Evolución 2017 a 2021:
+  - Hay tres nuevas categorías.
+  - Cuatro categorías con cambios de nombre y alcance.
+  - Alguna consolidación en el Top 10 de 2021
+  - Cambiaron los nombres cuando ha sido necesario para centrarnos en la causa raíz en lugar del síntoma. Cambia la importancia de las CWE.
+
+![2017 a 2021](https://i.imgur.com/nPcT0JX.png)
+
+- Las 10 principales categorías fueron seleccionadas y priorizadas de acuerdo con estos datos de prevalencia, en combinación con estimaciones consensuadas de explotabilidad, detectabilidad e impacto.
+- A partir de 2013 aparece la referencia directa a las CWE para reducir la complejidad de mapeo.
+- En 2017 aparece la tasa de incidencia: se refiere al porcentaje de la población de aplicaciones que tiene al menos una instancia de un tipo de vulnerabilidad. No importa si fue algo puntual o sistémico.
+- En 2017, categorías según la tasa de incidencia para determinar la probabilidad, y luego las clasificamos según la discusión del equipo basada en décadas de experiencia respecto a la Explotabilidad, la Detectabilidad (también probabilidad) y el Impacto técnico.
+- Para 2021, queremos utilizar los datos de Explotabilidad e Impacto (técnico) si es posible.
+- En 2021:
+  - Ocho de las diez categorías a partir de los datos aportados por partners encuestados.
+  - Y dos categorías a partir de la votación/encuesta de la comunidad del Top 10 a un alto nivel.
+  - Se uso número de aplicaciones analizadas para un año determinado (a partir de 2017) y el número de aplicaciones con al menos una instancia de una CWE encontrada en las pruebas.
+
+### Mitre
+
+- Organización que con fondos del estado de EEUU trabaja en aspectos de seguridad informática.
+- Administra el índice Common Vulnerabilities and Exposure (CVE), identificador usado mundialmente.
+
+### Data Factors
+
+- **CWEs mapeadas**: El número de CWEs asignadas a una categoría por el equipo del Top 10.
+- **Tasa de incidencia**: Es el porcentaje de aplicaciones vulnerables a esa CWE de la población analizada por esa organización para ese año.
+- **Cobertura (de pruebas)**: El porcentaje de aplicaciones que han sido testadas por todas las organizaciones para una determinada CWE.
+- **Explotabilidad ponderada**: La sub-puntuación de explotabilidad de las puntuaciones CVSSv2 y CVSSv3 asignadas a las CVEs mapeadas a las CWEs, normalizados y colocados en una escala de 10 puntos.
+- **Impacto ponderado**: La sub-puntuación de Impacto de las puntuaciones CVSSv2 y CVSSv3 asignadas a las CVEs mapeadas a las CWEs, normalizados y colocados en una escala de 10 puntos.
+- **Total de ocurrencias**: Número total de aplicaciones en las que se han encontrado las CWEs asignados a una categoría.
+- **Total de CVEs**: Número total de CVEs en la base de datos del NVD que fueron asignadas a las CWEs asignados a una categoría.
+
+### Riesgos
+
+- Un riesgo tecnólogico es la probabilidad de sufrir pérdidas por caídas o fallos en los sistemas informáticos o transmisión de datos, error desde programación u otros, siendo un componente del riesgo operativo.
+- Los atacantes pueden potencialmente usar muchas diferentes rutas a través de la aplicación para hacer daño al negocio u organización.
+  - Estas rutas representan un riesgo que puede, o no, ser lo suficientemente grave como para justificar la atención.
+- A veces, estas rutas son triviales de encontrar y explotar pero a veces son extremadamente difíciles.
+- De manera similar, el daño causado puede ir de ninguno hasta incluso sacarlo del negocio.
+- Cada ruta es un riesgo separado.
+- El riesgo "pérdida de control de acceso" se ha ido incrementando año a año, subiendo de rango en el Top Ten. Pasó de top 7 en 2007 a top 1 hoy en día.
+
+## Docker
+
+### Contenedores vs máquinas virtuales
+
+- En el mundo de la virtualización y el desarrollo de software, existen dos enfoques principales:
+  - Máquinas virtuales.
+  - Contenedores.
+- Los contenedores han surgido como una alternativa **ligera y eficiente** a las máquinas virtuales tradicionales.
+
+![VMs vs Containers](https://i.imgur.com/Cpzbcbn.png)
+
+### Máquinas virtuales
+
+- Las máquinas virtuales son **entornos de computación completos** que se ejecutan sobre un hardware físico.
+- Cada VM incluye un sistema operativo completo y recursos virtuales dedicados como CPU, RAM y almacenamiento.
+- La virtualización completa del sistema operativo a través de un hipervisor permite la ejecución de múltiples sistemas operativos en un solo servidor.
+
+### Contenedores
+
+- Los contenedores son **entornos de ejecución ligeros y portátiles que comparten el kernel** del sistema operativo del host.
+- Cada contenedor encapsula una aplicación y sus dependencias, pero no incluye un sistema operativo completo.
+- Los contenedores proporcionan aislamiento a nivel de proceso y usan recursos de manera más eficiente que las VMs.
+- Casos de uso:
+  - **Desarrollo Ágil**: Permiten a los equipos de desarrollo crear, probar y desplegar aplicaciones de manera rápida y consistente.
+  - **Entornos Aislados**: Las imágenes usadas por los contenedores ofrecen aislamiento de la aplicación y sus dependencias. Esto favorece prácticas de DevOps.
+  - **Despliegue Escalable**: La escalabilidad horizontal de los contenedores facilita el despliegue de aplicaciones en entornos de nube y microservicios.
+
+### Docker
+
+- Plataforma de contenedores que simplifica el proceso de creación, distribución y ejecución de contenedores.
+- Ha revolucionado la forma en que se empaqueta, distribuye y ejecuta las aplicaciones.
+- Se compone de dos conceptos clave:
+  - **Imágenes**.
+  - **Contenedores**.
+
+### Imágenes Docker
+
+- Una imagen Docker es un **paquete ligero y autónomo** que contiene todo lo que se necesita para ejecutar una aplicación determinada:
+  - Código.
+  - Runtime.
+  - Librerías.
+  - Variables de entorno.
+  - Configuraciones.
+- Se crean a partir de un archivo especial llamado **dockerfile**:
+  - Es un archivo de configuración que se utiliza para crear imágenes.
+  - En ese archivo se especifica una serie de pasos para construir la imagen, es decir qué queremos que tenga, y qué comandos usar para instalar diversas herramientas.
+- Estas imágenes se pueden guardar localmente o en repositorios compartidos como [DockerHub](https://hub.docker.com/). Esto permite que las mismas puedan ser reutilizadas fácilmente.
+
+### Volúmenes
+
+- No es una buena práctica guardar los datos persistentes dentro de un contenedor de Docker.
+- Los volúmenes son espacios de almacenamiento **fuera** de los contenedores.
+- Así podemos crear y borrar contenedores sin preocuparnos por que se borren los datos.
+- Es un concepto análogo a las carpetas compartidas en VMs.
+- También se pueden usar para compartir datos **entre contenedores**.
+
+### Compose
+
+- En ocasiones es necesario conectar contenedores entre si, por ejemplo: frontend, backend y db.
+- Docker Compose es una herramienta que permite simplificar el uso de contenedores Docker cuando se necesita armar soluciones que agrupan varios contenedores.
+- A partir de archivos YAML es mas sencillo crear contendores, conectarlos, habilitar puertos, volúmenes, etc.
 
 ---
 

@@ -8,6 +8,8 @@
 - [CTFs de la cátedra](https://ctf.dsa.linti.unlp.edu.ar/)
 - [Repositorio de la cátedra](https://github.com/DSAinfo/CTFS-Writeups)
 - [Documento práctica 1](https://docs.google.com/document/d/116bLLGzduvVYHJcxtHo0gP3eAJMnfSVGsXdWwXFmgJ4/edit?usp=sharing)
+- [Llaves PGP 1](https://keys.openpgp.org/)
+- [Llaves PGP 2](https://keyserver.ubuntu.com/)
 - Contacto
   - Einar Lanfranco (teoría): einar@linti.unlp.edu.ar
   - Nicolás Macia (teoría): nmacia@info.unlp.edu.ar
