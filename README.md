@@ -10,6 +10,8 @@
 - [Documento práctica 1](https://docs.google.com/document/d/116bLLGzduvVYHJcxtHo0gP3eAJMnfSVGsXdWwXFmgJ4/edit?usp=sharing)
 - [Llaves PGP 1](https://keys.openpgp.org/)
 - [Llaves PGP 2](https://keyserver.ubuntu.com/)
+- [Uso de Burp Suite Community Edition URL](https://www.youtube.com/watch?v=RAYTgCjWFFQ)
+- [Repo práctica 2](https://github.com/DSAinfo/2025-Error404)
 - Contacto
   - Einar Lanfranco (teoría): einar@linti.unlp.edu.ar
   - Nicolás Macia (teoría): nmacia@info.unlp.edu.ar
