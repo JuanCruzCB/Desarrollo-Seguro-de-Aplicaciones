@@ -649,25 +649,247 @@
 
 ---
 
-<h1 align="center">Clase 5 - ? de ?, 2025</h1>
+<h1 align="center">Clase 5 - 22 de abril, 2025</h1>
+
+## OWASP
+
+### OWASP Risk Rating Metholodgy
+
+- OWASP define a un riesgo como:
+
+```
+Riesgo = Probabilidad de que ocurra × Impacto en el negocio
+```
+
+- Los pasos son:
+  - Identificar un riesgo.
+  - Estimar la probabilidad de que ocurra.
+  - Estimar el impacto que tendría si ocurre.
+  - Determinar el grado de severidad del riesgo.
+  - Decidir qué arreglar en base a los anteriores.
+  - Customizar el modelo de risk rating.
+
+#### Identificar un riesgo
+
+- Suele ser el paso más difícil.
+- Se debe:
+  - Reunir información sobre los posibles **agentes** de amenaza.
+  - Identificar vulnerabilidades que puedan ser explotados por esos agentes.
+  - Estimar el impacto sobre el negocio si la amenaza se materializa.
+- Se piensa en el peor caso posible.
+
+#### Estimar la probabilidad de que ocurra.
+
+- Una vez identificados los riesgos, se estima:
+  - La prob. de que una vulnerabilidad en particular sea descubierta y explotada por uno o varios atacantes.
+  - Se recomienda usar un cálculo cuantitativo
+- OWASP usa una serie de factores para realizar la estimación de prob.
+- Estos factores se asocian a dos conceptos: a él o los atacantes y a la vulnerabilidad.
+- A cada factor se le asigna un valor 0..9.
+  - A más bajo el valor, menor el impacto.
+  - A más alto el valor, mayor el impacto.
+
+#### Estimar el impacto que tendría si ocurre.
+
+- Si la amenaza se materializa, se consideran dos tipos de impacto:
+  - Técnico.
+  - Sobre el negocio.
+- Nuevamente se usan factores de 0..9.
+
+#### Determinar el grado de severidad del riesgo.
+
+- Para determinar la severidad se usa:
+  - La probabilidad de ocurrencia de la amenaza.
+  - El impacto generado sobre el negocio.
+- El primer paso es seleccionar una de las opciones asociadas con cada factor a ingresar el número asociado en una tabla.
+- Luego se toma el promedio de las puntuaciones para calcular la prob. general.
+
+![](https://i.imgur.com/NG7EqOn.png)
+![](https://i.imgur.com/tX0u0II.png)
+
+#### Decidir qué arreglar en base a los anteriores.
+
+- Una vez hecho todo lo anterior, se tiene una lista pesada de arreglos para realizar.
+- Sin embargo, no todo se puede arreglar debido a los costos.
+
+#### Customizar el modelo de risk rating.
+
+- Existen varias formas:
+  - Agregando factores.
+  - Personalizando las opciones.
+  - Asignando peso a cada uno de los factores.
+
+### CVSS
+
+- La CVSS (Common Vulnerability Scoring System) provee una manera de capturar las características principales de una vulnerabilidad y producir un score numérico que refleja su severidad.
+- Este score puede ser traducido a una representación cualitativa como **bajo - medio - alto - critico**, para ayudar a las organizaciones a analizar y priorizar su proceso de manejo de vulnerabilidades.
+- [Calculadora](https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator?vector=AV:N/AC:H/PR:H/UI:R/S:U/C:N/I:N/A:H).
+
+### FIRST
+
+- FIRST (Forum of Incident Response and Security Teams) es una comunidad o foro mundial de los más importantes en cuestiones de ciberseguridad y gestión de incidentes.
+- [Herramientas](https://www.first.org/cvss/calculator/4-0).
+
+### Web Security Testing Guide
+
+- WSTG (Web Security Testing Guide) se creó en 2013 como una guía que complementa al OWASP Top 10.
+- Provee info específica y técnica sobre controles de seguridad que se deben contemplar a la hora de hacer pentesting en apps web.
+- Además, se le suma un complemento llamado OWASP Web Application Penetration Checklist que ayuda a contabilizar y categorizar los controles de seguridad que se deben ejecutar según OWASP Top 10 y WTSG.
+- Tiene como objetivo ayudar a entender el qué, por qué, cuándo, dónde y cómo testear apps web.
+- Proporciona un marco de prueba completo, mucho más que una simple lista de verificación o prescripción de problemas que deben abordarse.
+- Los lectores pueden usar este marco como plantilla para crear sus propios programas de testeo.
+- WTSG describe en detalle tanto el marco de prueba general como las técnicas necesarias para implementar este marco en la práctica.
+
+### Application Security Verification Standard
+
+- ASVS (Application Security Verification Standard) es una lista de requisitos o pruebas de seguridad de apps que los arquitectos, devs, testers, profesionales de ciberseguridad e incluso los clientes pueden usar para definir qué significa una aplicación segura.
+- La idea es que las personas involucradas se pongan de acuerdo y entiendan exactamente qué significa "seguro".
+- Ofrece una lista completa de requisitos, controles y pruebas de seguridad de aplicaciones web que puede utilizar para determinar el alcance, crear y verificar aplicaciones web y móviles seguras.
+- Permite a las organizaciones desarrollar y mantener aplicaciones más seguras; y también brinda a los proveedores de servicios de seguridad y proveedores un conjunto de controles bien documentado con el que pueden alinear sus requisitos y ofertas.
+- La última versión, OWASP ASVS v4.0.2, se lanzó en octubre de 2020.
+- Busca fijar un estándar para normalizar el nivel y el rigor con el que se hacen las verificaciones de seguridad sobre web apps.
+- La idea general es que:
+  - Se use como métrica para dar un valor de confianza a las apps.
+  - Se use como guía para que los devs puedan construir controles de manera de satisfacer los requisitos de seguridad.
+  - Se use durante adquisiciones proveyendo una base para especificar requerimientos de seguridad en los contratos.
+
+#### Niveles
+
+- El ASVS define tres niveles de verificación para la seguridad, con cada nivel incrementando su profundidad.
+  - ASVS Nivel 1 es para todo el software.
+  - ASVS Nivel 2 es para las aplicaciones conteniendo datos sensibles, los cuales requieren protección.
+  - ASVS Nivel 3 es para las aplicaciones más críticas, aplicaciones realizando transacciones de alto valor, conteniendo datos médicos sensibles, o cualquier aplicación el cual requiera un alto nivel de confianza.
+- Cada nivel contiene una lista de requerimientos para la seguridad.
+
+### A01-2021: Pérdida de control de acceso
+
+- Se trata de el mayor riesgo de seguridad en apps web (top 1).
+- Significa que las restricciones sobre lo que los usuarios autenticados pueden hacer no se aplican de forma correcta.
+- Por ende, los atacantes pueden explotar estos defectos para acceder, de forma **no autorizada**, a funcionalidades y/o datos, cuentas de otros usuarios, ver archivos sensibles, modificar datos, cambiar derechos de acceso y permisos, etc.
+- Se trata de una violación del principio de **mínimo privilegio o denegación por defecto**, según el cual el acceso sólo debe ser permitido para capacidades, roles o usuarios particulares, y no para cualquier persona.
+- Eludir las comprobaciones de control de acceso modificando la URL (alteración de parámetros o navegación forzada), el estado interno de la aplicación o la página HTML, o mediante el uso de una herramienta que modifique los pedidos a APIs.
+- Permitir ver o editar la cuenta de otra persona, con tan solo conocer su ID (referencia directa insegura a objetos)
+- Acceder a APIs con controles de acceso inexistentes para los métodos POST, PUT y DELETE.
+- Elevación de privilegios:
+  - Actuar como usuario sin haber iniciado sesión.
+  - Actuar como administrador cuando se inició sesión como usuario regular.
+- Manipulación de metadatos, como reutilizar o modificar un token de control de acceso JSON Web Token (JWT), una cookie o un campo oculto, manipulándolos para elevar privilegios o abusar de la invalidación de tokens JWT.
+- Configuraciones incorrectas de CORS (uso compartido de recursos de origen cruzado) que permiten el acceso a APIs desde orígenes no autorizados o confiables.
+- Forzar la navegación a páginas autenticadas siendo usuario no autenticado o a páginas privilegiadas siendo usuario regular.
+
+### Control de acceso HTTP (CORS)
+
+- Mecanismo que usa headers HTTP adicionales para permitir que un user agent obtenga permiso para acceder a recursos seleccionados desde un servidor, en un origen distinto.
+- Un agente crea un HTTP request de **origen cruzado** cuando solicita un recurso desde un dominio distinto, un protocolo o un puerto diferente al del documento que lo generó.
+- Por seguridad, los navegadores restringen los HTTP requests de origen cruzados iniciados dentro de un script.
+- De forma simple, CORS es una regla que dice: Un sitio no puede obtener datos de otro sitio excepto que ese otro sitio lo permita.
+
+### A01-2021: Ejemplos
+
+#### 1
+
+- Es importante tener mucho cuidado con los query args en las URLs.
+- Un atacante puede modificar un parámetro en la URL para acceder a datos que deberían estar restringidos.
+- El problema está en no verificar los datos de la URL antes de acceder a la base de datos.
+
+```
+pstmt.setString(1, request.getParameter("acct"));
+ResultSet results = pstmt.executeQuery();
+...
+
+https://example.com/app/accountInfo?acct=notmyacct
+```
+
+#### 2
+
+- Un atacante puede imaginarse nombres de URL de la página a las cuales no se puede acceder normalmente (clickeando) y simplemente escribirlas en la barra de navegación, y si no están protegidas podrá ganar acceso no autorizado.
+- El problema está en no verificar qué host está accediendo a cada URL que tenemos (verificar que ese host tenga autorización).
+
+### A01-2021: Referencia directa insegura a objetos
+
+- Una **referencia directa a un objeto** ocurre cuando un dev expone una referencia a la implementación interna de un objeto (que puede ser un archivo, un directorio, un registro de DB, una clave, una URL o un parámetro de un formulario).
+- Si no existe un control, un atacante puede manipular esta referencia para acceder a objetos sin autorización.
+- Un atacante, como usuario autorizado en el sistema, simplemente modifica el valor de un parámetro que se refiere directamente a un objeto del sistema a otro objeto para el que el usuario no se encuentra autorizado.
+- Las aplicaciones no siempre verifican que el usuario tiene autorización sobre el objetivo.
+
+### C7: Aplicar controles de acceso
+
+- El control de acceso (o autorización) es el proceso de otorgar o denegar solicitudes específicas de un usuario, programa o proceso.
+- El control de acceso también implica el acto de otorgar y revocar estos privilegios.
+- Hay varios tipos diferentes de diseño de control de acceso que se deben considerar:
+  - DAC.
+  - MAC.
+  - RBAC.
+  - ABAC.
+
+#### DAC (Discretionary Access Control)
+
+- El dueño o creador de un recurso tiene la autoridad de conceder o restringir acceso a ese recurso.
+- Además, a los que tienen acceso, el dueño define cuales tipos de privilegios tienen y cuales no.
+
+#### MAC (Mandatory Access Control)
+
+- El acceso es controlado por una autoridad central basada en clasificaciones de seguridad (**etiquetas**) asignadas tanto a usuarios como a recursos.
+- Las reglas se aplican en todo el sistema y no pueden ser anuladas por usuarios o propietarios.
+
+#### RBAC (Role Based Access Control)
+
+- Los permisos de acceso se asignan a **roles** en lugar de a usuarios individuales.
+- Luego, los usuarios son asignados a los roles apropiados (ej. administrador, editor, visualizador), heredando los permisos asociados con dichos roles.
+
+#### ABAC (Attribute Based Access Control)
+
+- Las decisiones de acceso se toman evaluando **atributos** asociados con el usuario, el recurso al que se accede, la acción solicitada y, potencialmente, factores ambientales (como la hora del día o la ubicación).
+- Las políticas usan estos atributos para determinar si se debe otorgar o no el acceso.
+
+#### Principios
+
+- **Diseñar el control de acceso a fondo**:
+  - El control de acceso es una de las áreas principales del diseño de seguridad de aplicaciones que debe diseñarse minuciosamente desde el principio, especialmente cuando se abordan requisitos como el control de acceso de múltiples usuarios.
+  - El diseño del control de acceso puede comenzar simple, pero a menudo puede convertirse en un control de seguridad complejo y con muchas funciones
+  - Al evaluar la capacidad de control de acceso de los frameworks de software, asegúrese de que su funcionalidad de control de acceso permita la personalización para sus necesidades específicas de funciones de control de acceso.
+- **Forzar que todas las solicitudes pasen por controles de control de acceso**:
+  - Asegúrese de que todas las solicitudes pasen por algún tipo de capa de verificación de control de acceso.
+  - Las tecnologías como los filtros Java u otros mecanismos de procesamiento automático de solicitudes son artefactos de programación ideales que ayudarán a garantizar que todas las solicitudes pasen por algún tipo de verificación de control de acceso.
+- **Denegar por defecto**:
+  - Principio de que si una solicitud no se permite específicamente, se rechaza.
+  - Ejemplos:
+    - El código de la aplicación puede generar un error o una excepción al procesar las solicitudes de control de acceso. En estos casos, siempre se debe negar el control de acceso.
+  - Cuando un administrador crea un nuevo usuario o un usuario se registra para una nueva cuenta, esa cuenta debe tener un acceso mínimo o nulo de forma predeterminada hasta que se configure ese acceso.
+  - Cuando se agrega una nueva función a una aplicación, se debe negar a todos los usuarios el uso de esa función hasta que esté configurada correctamente.
+- **Principio de mínimo privilegio**:
+  - Asegúrese de que a todos los usuarios, programas o procesos se les proporcione el mínimo acceso necesario posible.
+  - Tenga cuidado con los sistemas que no proporcionan capacidades de configuración de control de acceso granular.
+- **No codificar roles**:
+  - Muchos marcos de aplicaciones tienen de forma predeterminada un control de acceso basado en roles.
+  - Es común encontrar un código de aplicación que esté lleno de comprobaciones de esta naturaleza.
+  - Ejemplo: `if (user.hasRole("ADMIN")) || (user.hasRole("MANAGER")) { deleteAccount(); }`.
+  - La programación basada en roles de esta naturaleza es frágil.
+  - Es fácil crear comprobaciones de roles incorrectas o faltantes en el código.
+  - La programación basada en roles no permite la tenencia múltiple.
+  - Se requerirán medidas extremas como bifurcar el código o verificaciones adicionales para cada cliente para permitir que los sistemas basados en roles tengan diferentes reglas para diferentes clientes.
+  - Las bases de código grandes con muchas comprobaciones de control de acceso pueden ser difíciles de auditar o verificar la política general de control de acceso de la aplicación.
+  - En su lugar, considere la siguiente metodología de programación de control de acceso: `if (user.hasAccess("DELETE_ACCOUNT")) { deleteAccount(); }`.
+  - Las comprobaciones de control de acceso basadas en atributos o características de esta naturaleza son el punto de partida para construir sistemas de control de acceso bien diseñados y ricos en funciones.
+  - Este tipo de programación también permite una mayor capacidad de personalización del control de acceso a lo largo del tiempo.
+- **Registrar todos los eventos de control de acceso**:
+  - Todas las fallas de control de acceso deben registrarse, ya que pueden indicar que un usuario malintencionado está investigando la aplicación en busca de vulnerabilidades.
+
+---
+
+<h1 align="center">Clase 6 - 29 de abril, 2025</h1>
 
 ## ?
 
 ---
 
-<h1 align="center">Clase 6 - ? de ?, 2025</h1>
+<h1 align="center">Clase 7 - 6 de mayo, 2025</h1>
 
 ## ?
 
 ---
 
-<h1 align="center">Clase 7 - ? de ?, 2025</h1>
-
-## ?
-
----
-
-<h1 align="center">Clase 8 - ? de ?, 2025</h1>
+<h1 align="center">Clase 8 - 13 de mayo, 2025</h1>
 
 ## ?
 
