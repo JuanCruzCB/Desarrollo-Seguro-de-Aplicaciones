@@ -879,7 +879,87 @@ https://example.com/app/accountInfo?acct=notmyacct
 
 <h1 align="center">Clase 6 - 29 de abril, 2025</h1>
 
-## ?
+## DDoS
+
+### Concepto
+
+- Un ataque DDoS (Distributed Denial of Service) busca sobrecargar un servicio online con tráfico malicioso desde múltiples fuentes coordinadas.
+- Esto hace que ese servicio se vuelva inaccesible para los usuarios legítimos.
+- La clave es la distribución del ataque, que hace dificil bloquear a las fuentes individuales.
+- El objetivo es interrumpir la disponibilidad del servicio atacado.
+
+### Tipos
+
+- **Ataques volumétricos**: inundación de tráfico.
+- **Ataques de protocolo**: explotan debilidades en la comunicación.
+- **Ataques a la capa de aplicación**: dirigidos a funcionalidades específicas del software.
+
+## A02-2021 - Fallas Criptográficas
+
+### Concepto
+
+- **Fallas Criptográficas** (anteriormente "Exposición de Datos Sensibles") es el segundo riesgo más crítico según OWASP. Se refiere a errores en el uso de criptografía que exponen información confidencial.
+- **Descripción general:**
+  - Implica fallos en la implementación, configuración o ausencia de criptografía.
+  - Expone datos sensibles como credenciales, PII, historiales médicos o tarjetas de crédito.
+  - Ha sido uno de los ataques con mayor impacto en los últimos años.
+- **Errores comunes:**
+  - No cifrar datos sensibles en reposo o en tránsito.
+  - Usar algoritmos obsoletos o vulnerables (MD5, SHA-1, RC4).
+  - Emplear criptografía propia (no probada ni auditada).
+  - Usar algoritmos fuertes de manera incorrecta.
+  - Hardcodear claves o almacenarlas sin protección.
+- **Técnicas de ataque comunes:**
+  - Robo de claves criptográficas.
+  - Ataques Man-in-the-Middle (MITM).
+  - Robo de datos en texto plano desde el cliente, el servidor o durante la transmisión.
+  - Uso de bases de datos públicas de hashes y técnicas de cracking (por ejemplo, con GPU).
+- **CWE asociados:**
+  - CWE-259: Uso de contraseñas en el código fuente.
+  - CWE-327: Algoritmo criptográfico inseguro.
+  - CWE-331: Entropía insuficiente.
+- **Consecuencias:**
+  - Compromiso de datos que deberían estar protegidos.
+  - Pérdida de confidencialidad y confianza.
+  - Riesgos legales y regulatorios por exposición de información protegida.
+
+### Como saber si la aplicación es vulnerable
+
+- Es fundamental determinar las necesidades de protección de datos en tránsito y en almacenamiento.
+- Contraseñas, tarjetas de crédito, registros médicos, info personal y datos sensibles del negocio requieren protección adicional.
+- Ejemplos de ataques:
+  - Si se envía información confidencial a través de Internet sin seguridad en las comunicaciones, un atacante en una conexión inalámbrica compartida podría ver y robar los datos de otro usuario.
+  - Además, un atacante podría usar SQL Injection para robar contraseñas y otras credenciales de una base de datos de aplicaciones y exponer esa información al público.
+- Se debe tener en cuenta la Ley 25.326 de Protección de Datos Personales.
+  - Datos personales.
+  - Datos sensibles.
+- Para los datos sensibles hay que pensar en:
+  - ¿Algunos de esos datos se guardan en plano? → ¿Considerando backups?
+  - ¿Estos datos se transmiten como texto plano? ¿Ya sea Interna o externamente?
+  - ¿Se usan algoritmos de cifrado viejos, débiles?
+- Sobre el manejo de claves de cifrado:
+  - ¿Cómo se generan?
+  - ¿Cómo se administran?
+  - ¿Se rotan?
+  - ¿Como se recuperan contraseñas olvidadas?
+  - ¿Ante un compromiso existe procediento de respuesta?
+
+### Ejemplos de ataques
+
+#### 1. Cifrado reversible vulnerable a SQL Injection
+
+- Aunque los datos (como números de tarjeta) están cifrados en la base de datos, se descifran automáticamente al consultarlos.
+- Si hay una vulnerabilidad de inyección SQL, un atacante puede acceder a los datos en texto plano.
+
+#### 2. Falta o mal uso de TLS
+
+- El sitio permite conexiones sin HTTPS o usa cifradores débiles.
+- Un atacante puede interceptar la conexión (por ejemplo, en Wi-Fi pública), robar cookies de sesión y secuestrar la sesión del usuario, accediendo o modificando información privada.
+
+#### 3. Contraseñas sin protección adecuada
+
+- Se almacenan con hashes simples o sin salt.
+- Si un atacante obtiene acceso (por ejemplo, mediante carga de archivos mal gestionada), puede usar diccionarios de hashes precalculados para revelar todas las contraseñas.
 
 ---
 
