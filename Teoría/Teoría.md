@@ -961,11 +961,199 @@ https://example.com/app/accountInfo?acct=notmyacct
 - Se almacenan con hashes simples o sin salt.
 - Si un atacante obtiene acceso (por ejemplo, mediante carga de archivos mal gestionada), puede usar diccionarios de hashes precalculados para revelar todas las contraseñas.
 
+### Clasificación de los datos
+
+- Es fundamental clasificar los datos en un sistema y determinar a **qué nivel de sensibilidad pertenece cada dato**.
+- Luego, cada categoría de datos se puede asignar a las reglas de protección necesarias para cada nivel de sensibilidad.
+- Por ejemplo:
+  - La información de marketing público que no es confidencial puede clasificarse como **datos públicos** que se pueden colocar en el sitio web público.
+  - Pero los números de tarjetas de crédito pueden clasificarse como datos de usuario privados que pueden necesitar ser encriptados mientras están almacenados o en tránsito.
+
+### Cifrado de datos en tránsito
+
+- Al transmitir datos confidenciales a través de cualquier red, se debe considerar la seguridad de las comunicaciones de extremo a extremo (o cifrado en tránsito) de algún tipo.
+- **TLS** es el protocolo criptográfico más común para la seguridad de las comunicaciones.
+  - Se usa en apps web, servicios web, apps mobile, etc para comunicarse a través de una red de forma segura.
+  - TLS debe ser configurado correctamente antes de usarlo.
+- El beneficio principal de la seguridad de la capa de transporte es la protección de los datos de la aplicación web contra la divulgación y modificación no autorizadas cuando se transmite entre clientes (navegadores web) y el servidor de aplicaciones web, y entre el servidor de aplicaciones web y el back-end y otros no basados en navegador.
+
+### Cifrado en reposo
+
+#### Concepto
+
+- La primera regla fundamental de la gestión de datos sensibles es evitar almacenar éstos cuando sea posible: `lo que no tenés, no te lo pueden robar`.
+- Cuando se deben almacenar datos sensibles, siempre se debe asegurar que estén **protegidos criptográficamente** para evitar su divulgación y modificación no autorizadas.
+  - La criptografía es uno de los temas más avanzados de seguridad de la información, y uno cuya comprensión requiere gran educación y experiencia.
+  - Es difícil hacerlo bien porque hay muchos enfoques para el cifrado, cada uno con sus ventajas y desventajas que los arquitectos y desarrolladores de soluciones web deben comprender a fondo.
+  - Además, la **investigación seria en criptografía se basa típicamente en matemática avanzada y teoría de números**, lo que constituye una seria barrera de entrada.
+  - En lugar de crear una capacidad criptográfica desde cero, se recomienda encarecidamente **usar soluciones abiertas y revisadas por pares**, como el proyecto Google Tink, Libsodium y la capacidad de almacenamiento seguro integrada en muchos frameworks de software y servicios en la nube.
+
+#### Dispositivos móviles
+
+- Las aplicaciones móviles corren un riesgo particular de fuga de datos porque los dispositivos móviles se pierden o son robados con regularidad, y contienen datos confidenciales.
+- Como regla general, solo los datos mínimos requeridos deben almacenarse en el dispositivo móvil.
+- Pero si debe almacenar datos confidenciales en un dispositivo móvil, entonces los datos confidenciales deben almacenarse dentro del directorio de almacenamiento de datos específico de cada sistema operativo móvil.
+- En Android, será el almácen de claves de Android y en iOS será el llavero de iOS.
+
+#### Manejo de secretos
+
+- Las aplicaciones contienen numerosos "**secretos**" necesarios para las operaciones de seguridad.
+- Estos incluyen:
+  - Certificados.
+  - Contraseñas de conexión SQL.
+  - Credenciales de cuentas de servicios de terceros.
+  - Contraseñas.
+  - Claves SSH.
+  - Claves de cifrado y más.
+- **La divulgación o modificación no autorizada de estos secretos podría llevar a un compromiso total del sistema**.
+- Al administrar los secretos de la aplicación, tenga en cuenta lo
+  siguiente.
+  - No almacene nunca secretos en código, archivos de configuración ni los pase a través de variables de entorno.
+  - Guarde las claves y sus otros secretos de nivel de aplicación en una bóveda de secretos como **KeyWhiz** o el proyecto **Vault de Hashicorp** o **Amazon KMS** para proporcionar almacenamiento seguro y acceso a secretos de nivel de aplicación en tiempo de ejecución.
+
+## TLS
+
+### Concepto
+
+- TLS = Transport Layer Security.
+- Secure Socket Layer (SSL) fue el protocolo original que se usó para proporcionar cifrado para el tráfico HTTP, en forma de
+  HTTPS.
+- Hubo dos versiones de SSL publicadas: **las versiones 2 y 3 tienen serias debilidades criptográficas y ya no deberían usarse**.
+- Por varias razones, la siguiente versión del protocolo (efectivamente SSL 3.1) se denominó Transport Layer Security (TLS) versión 1.0.
+- Posteriormente se lanzaron las versiones 1.1, 1.2 y 1.3 de TLS.
+- Los términos "SSL", "SSL / TLS" y "TLS" se usan indistintamente con frecuencia y, en muchos casos, se usa "SSL" cuando se hace referencia al protocolo TLS más moderno.
+
+### Beneficios
+
+- **Confidencialidad**: protección contra que un atacante lea el contenido del tráfico.
+- **Integridad**: protección contra un atacante que modifica el tráfico.
+- **Prevención de reproducción**: protección contra un atacante que reproduce solicitudes en el servidor.
+- **Autenticación**: permite al cliente verificar que está conectado al servidor real (tenga en cuenta que la identidad del cliente no se verifica a menos que se usen certificados de cliente).
+
+### Handshake
+
+El handshake de TLS es un proceso que establece una conexión segura y encriptada entre un cliente y un servidor. Se compone de varios pasos:
+
+1. **Client Hello**:
+   1. El cliente inicia el protocolo de enlace enviando un mensaje de "saludo" al servidor.
+   2. El mensaje incluirá qué versión de TLS admite el cliente, los conjuntos de cifrado admitidos y una cadena de bytes aleatorios conocida como "cliente aleatorio".
+2. **Server Hello**:
+   1. En respuesta al mensaje de saludo del cliente, el servidor envía un mensaje que contiene:
+      1. El certificado SSL del servidor.
+      2. El conjunto de cifrado elegido por el servidor.
+      3. El "servidor aleatorio", otra cadena aleatoria de bytes que genera el servidor.
+3. **Premaster secret**:
+   1. El cliente envía una cadena aleatoria de bytes más, el "premaster secret".
+   2. El secreto de premaster está encriptado con la clave pública y el servidor solo puede desencriptarlo con la clave privada (el cliente obtiene la clave pública del certificado SSL del servidor).
+4. **Clave privada utilizada:**:
+   1. El servidor descifra el secreto de premaster.
+5. **Claves de sesión creadas**:
+   1. Tanto el cliente como el servidor generan claves de sesión desde el cliente aleatorio, el servidor aleatorio y el secreto del premaster.
+   2. Deberían llegar a los mismos resultados.
+6. **El cliente está listo**:
+   1. El cliente envía un mensaje "terminado" que está encriptado con una clave de sesión.
+7. **El servidor está listo**:
+   1. El servidor envía un mensaje "terminado" cifrado con una clave de sesión.
+8. **Cifrado simétrico seguro logrado**:
+   1. El protocolo de enlace se completa y la comunicación continúa utilizando las claves de sesión.
+
+### Certificados
+
+- Se debe usar claves fuertes y protegerlas.
+- La clave privada usada para generar la clave de cifrado debe ser lo suficientemente fuerte para la vida útil de la clave privada y el certificado correspondiente.
+- La mejor práctica actual es seleccionar un tamaño de clave >= 2048 bits.
+- La clave privada también debe protegerse del acceso no autorizado mediante permisos del sistema de archivos y otros controles técnicos y administrativos.
+- Se deben usar algoritmos de hash criptográficos potentes.
+- Los certificados deben usar SHA-256 para el algoritmo hash, en lugar de los algoritmos MD5 y SHA-1 más antiguos.
+  - Estos tienen una serie de debilidades criptográficas y los navegadores modernos no confían en ellos.
+
+### Dominios
+
+- El nombre de dominio del certificado debe coincidir con el nombre completo del servidor que presenta el certificado.
+- Históricamente, esto se almacenaba en el atributo commonName (CN) del certificado.
+- Sin embargo, las versiones modernas de Chrome ignoran el atributo CN y requieren que el Fully Qualified Domain Name esté en el atributo subjectAlternativeName (SAN).
+- Por motivos de compatibilidad, los certificados deben tener el FQDN principal en la CN y la lista completa de FQDN en la SAN.
+- Al crear el certificado, se debe tener en cuenta lo siguiente:
+  - Considere si también debe incluirse el subdominio "www".
+  - No incluya nombres de host no calificados.
+  - No incluya direcciones IP.
+  - No incluya nombres de dominio internos en certificados externos.
+  - Si se puede acceder a un servidor mediante FQDN internos y externos, configúrelo con varios certificados.
+
+### Dominios wildcard
+
+- Los certificados wildcard pueden ser convenientes, sin embargo, violan el principio de mínimo privilegio, ya que un solo certificado es válido para todos los subdominios de un dominio (como `*.example.org`).
+
+- Cuando varios sistemas comparten un certificado \*, aumenta la probabilidad de que la clave privada del certificado se vea comprometida, ya que la clave puede estar presente en varios sistemas.
+- Además, el valor de esta clave aumenta significativamente, lo que la convierte en un objetivo más atractivo para atacantes.
+
+### Autoridad de certificación (CA)
+
+- Con el fin de ser de confianza para los usuarios, los certificados deberán ser firmados por una autoridad de certificados de confianza: **CA**.
+- Para las aplicaciones orientadas a Internet, ésta debe ser una de las CA reconocidas y de confianza automática para los sistemas operativos y navegadores.
+- LetsEncrypt CA proporciona certificados SSL validados de dominio gratuitos, en los que confían los principales navegadores.
+- Para aplicaciones internas, se puede utilizar una CA interna.
+- Esto significa que el FQDN del certificado no se expondrá (ni a una CA externa ni públicamente en las listas de transparencia de certificados).
+- Sin embargo, el certificado solo será de confianza para los usuarios que hayan importado y hayan confiado en el certificado de CA interno que se usó para firmarlos.
+
+### Aplicaciones
+
+- Se recomienda usar TLS para todas las páginas.
+- TLS debe usarse para **todas las páginas**, no solo para aquellas que se consideran confidenciales, como la página de inicio de sesión.
+- Si hay páginas que no imponen el uso de TLS, estas podrían darle al atacante la oportunidad de sniffear información confidencial como tokens de sesión o inyectar JavaScript malicioso en las respuestas para llevar a cabo otros ataques contra el usuario.
+- Para las aplicaciones de cara al público, puede ser apropiado hacer que el servidor web escuche las conexiones HTTP no cifradas en el puerto 80 y luego redirigirlas inmediatamente con una redirección permanente (HTTP 301) para brindar una mejor experiencia a los usuarios que escriben manualmente el nombre de dominio.
+- Esto debería ser compatible con el encabezado HTTP Strict Transport Security (HSTS) para evitar que accedan al sitio a través de HTTP en el futuro.
+
+### TLS y No TLS
+
+- No mezclar contenido TLS y no TLS.
+- Una página que está disponible a través de TLS no debe incluir ningún archivo de recursos (como JavaScript o CSS) que se carguen a través de HTTP no cifrado.
+- Estos recursos no cifrados podrían permitir que un atacante sniffear las cookies de sesión o inyecte código malicioso en la página.
+- Los navegadores modernos también bloquearán los intentos de cargar contenido a través de HTTP no cifrado en páginas seguras.
+
+### Cookies "seguras"
+
+- Todas las cookies deben estar marcadas con el atributo "secure", que indica al navegador que las envíe solo a través de conexiones HTTP cifradas, para evitar que sean rastreadas desde una conexión HTTP no cifrada.
+- Esto es importante incluso si el sitio web no escucha en HTTP (puerto 80), ya que un atacante que realiza un ataque de Man In The Middle podría presentar un servidor web falsificado en el puerto 80 al usuario para robar su cookie.
+- [Referencia](https://infosec.mozilla.org/guidelines/web_security#cookies).
+
+### Caché de datos confidenciales
+
+- Aunque TLS brinda protección de datos mientras están en tránsito, **no brinda ninguna protección para los datos una vez que han llegado al sistema solicitante**.
+- Como tal, esta información puede almacenarse en la memoria caché del navegador del usuario, o por cualquier proxy intermedio que esté configurado para realizar el descifrado TLS.
+- Cuando se devuelven datos confidenciales en las respuestas, se deben usar headers HTTP para indicar al navegador y a los servidores proxy que **no almacenen la información en caché**, a fin de evitar que se almacene o se devuelva a otros usuarios.
+- Esto se puede lograr configurando los siguientes encabezados HTTP en la respuesta:
+  - `Cache-Control: no-cache, no-store, must-revalidate`.
+  - `Pragma: no-cache`.
+  - `Expires: 0`.
+
+### HSTS
+
+#### Concepto
+
+- HTTP Strict Transport Security (HSTS) es una mejora de seguridad opcional que es especificada por la aplicación web mediante el uso de un encabezado de respuesta.
+- Una vez que un navegador compatible recibe este encabezado, ese navegador evitará que se envíen comunicaciones a través de HTTP al dominio especificado y, en su lugar, enviará todas las comunicaciones a través de HTTPS.
+
+#### Amenazas
+
+HSTS aborda las siguientes amenazas:
+
+- Usuario ingresa a un sitio y está sujeto a un atacante Man In The Middle.
+  - HSTS redirige automáticamente las solicitudes HTTP a HTTPS para el dominio de destino.
+- La aplicación web que está destinada a ser puramente HTTPS contiene inadvertidamente enlaces HTTP o sirve contenido a través de HTTP.
+  - HSTS redirige automáticamente las solicitudes HTTP a HTTPS para el dominio de destino.
+- Un atacante MITM intenta interceptar el tráfico de un usuario víctima usando un certificado no válido y espera que el usuario acepte el certificado incorrecto.
+  - HSTS no permite que un usuario anule el mensaje de certificado no válido.
+
 ---
 
 <h1 align="center">Clase 7 - 6 de mayo, 2025</h1>
 
-## ?
+## TLS
+
+## Almacenamiento de contraseñas
+
+## AO3-2021 - Inyección
 
 ---
 
