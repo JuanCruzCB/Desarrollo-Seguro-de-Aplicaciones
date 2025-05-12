@@ -1151,6 +1151,49 @@ HSTS aborda las siguientes amenazas:
 
 ## TLS
 
+### Let's Encrypt
+
+- Autoridad de certificación que surgió en 2016 y proporciona certificados gratuitos para TLS a través de un proceso automatizado diseñado para eliminar el complejo proceso actual de creación manual, la validación, firma, instalación y renovación de los certificados de sitios web seguros.
+- Es una espada de doble filo, ya que si bien tiene sus cosas positivas, le permitió a atacantes crear páginas falsas, réplicas de páginas legítimas, para estafar a la gente. Como estas páginas falsas usaban certificados, parecían legítimas.
+
+### Homografía
+
+- La homografía entre palabras es la circunstancia por la cual dos palabras de diferente significado coinciden en su escritura.
+- Es un tipo de ataque.
+- Básicamente, usan letras en el dominio (URL) que se ven casi idénticas a otras para engañar a la gente.
+
+### SSLStrip
+
+- Herramienta usada en ataques MITM para interceptar la comunicación entre un usuario y un servidor web.
+- Su objetivo principal es degradar una conexión HTTPS segura a una conexión HTTP insegura.
+- SSLStrip se sitúa entre el usuario y el sitio web.
+- Cuando el navegador del usuario intenta establecer una conexión segura (HTTPS), la herramienta intercepta esta solicitud.
+- Luego, establece una conexión HTTPS segura con el servidor web, pero presenta al navegador del usuario una conexión HTTP sin cifrar.
+- Como resultado, toda la información sensible que el usuario introduce en el sitio web (contraseñas, datos de tarjetas de crédito, etc.) se transmite a través de una conexión HTTP insegura, permitiendo al atacante interceptarla con facilidad.
+- El usuario, por su parte, puede no notar la diferencia, ya que el sitio web se ve y funciona de manera similar, aunque sin la protección del cifrado SSL/TLS.
+
+### SSL Pinning
+
+- Técnica de seguridad que busca prevenir ataques de MITM de una manera más robusta que la simple validación de certificados por parte de las Autoridades de Certificación (CAs).
+- En lugar de confiar en cualquier certificado firmado por una CA de confianza, SSL Pinning "ancla" o "fija" un certificado específico o su clave pública dentro de la aplicación cliente (por ejemplo, una app móvil o un navegador web).
+- Cuando la aplicación intenta establecer una conexión segura (HTTPS) con un servidor, no solo verifica que el certificado del servidor sea válido y esté firmado por una CA de confianza, sino que también compara el certificado presentado por el servidor (o su clave pública) con la copia "anclada" dentro de la aplicación.
+- Si el certificado o la clave pública no coinciden exactamente con la información "anclada", la aplicación rechaza la conexión, incluso si el certificado del servidor es técnicamente válido.
+
+### Frida
+
+- Herramienta de dynamic instrumentation muy usada para bypassear mecanismos de seguridad en apps móviles, especialmente el SSL pinning.
+- Permite:
+  - Inyectar scripts (JavaScript) en procesos de apps en ejecución.
+  - Interceptar funciones.
+  - Modificar comportamientos en caliente.
+
+### Certificate Transparency
+
+- Estándar abierto publicado en 2013.
+- Es un framework open source de monitorización y auditado de certificados digitales.
+- Este ecosistema compuesto principalmente de logs, monitores y auditores, permite a cualquier interesado estar informado si se emite un nuevo certificado para un determinado dominio, ayudando así a **mitigar el uso de certificados fraudulentos emitidos sin el conocimiento del propietario del dominio para el que se emiten**.
+- Además, esta tecnología permite realizar un seguimiento de la actividad de las autoridades certificadoras (CAs), de modo que puedan ser detectados rápidamente en el caso por ejemplo de que hayan sido comprometidas para emitir certificados fraudulentos.
+
 ## Almacenamiento de contraseñas
 
 ## AO3-2021 - Inyección
