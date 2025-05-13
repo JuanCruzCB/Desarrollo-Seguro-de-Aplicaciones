@@ -1196,6 +1196,97 @@ HSTS aborda las siguientes amenazas:
 
 ## Almacenamiento de contraseñas
 
+### Concepto
+
+- La idea es almacenar las contraseñas de forma tal que un atacante no las pueda obtener, incluso si la aplicación y/o DB está comprometida.
+- Casi todos los lenguajes y frameworks modernos proveen funcionalidades integradas para ayudar a almacenar contraseñas de forma segura.
+- Si un atacante gana acceso a los hashes de las contraseñas almacenadas, puede hacer bruteforce offline.
+  - Para defender ante esto, solo se puede ralentizar los ataques offline seleccionando algoritmos de hash que consuman tantos recursos como sea posible.
+
+### Hashing vs cifrado
+
+- Tanto el hash como el cifrado proporcionan formas de mantener seguros los datos confidenciales.
+- Sin embargo, en casi todas las circunstancias, las contraseñas deben estar **hasheadas pero NO cifradas**.
+- El hash es una función **unidireccional**, es decir, es imposible "descifrar" un hash y obtener el valor de texto sin formato original.
+- El hash es apropiado para la validación de contraseñas.
+- Incluso si un atacante obtiene el hash de la contraseña, no puede ingresarla en el campo de contraseña de una aplicación e iniciar sesión como la víctima.
+- El cifrado es una función **bidireccional**, lo que significa que se puede recuperar el texto sin formato original.
+- El cifrado es apropiado para almacenar datos como la dirección de un usuario, ya que estos datos se muestran en texto plano en el perfil del usuario.
+
+### Cracking de hashes
+
+- Si bien los hashes no son descifrables, pueden ser crackeados siguiendo una serie de pasos:
+  - Se elige una contraseña que **se cree** que la víctima ha elegido (por ejemplo, `contraseña1`).
+  - Se calcula el hash de esa contraseña.
+  - Se compara el hash obtenido con el hash de la víctima.
+  - Si coinciden, se ha "descifrado" correctamente el hash y ahora se conoce el valor de texto plano de la contraseña.
+  - Este proceso se repite para una gran cantidad de posibles contraseñas candidatas.
+- Las contraseñas candidatas para crackeo se pueden seleccionar vía distintos métodos:
+  - Listas de contraseñas obtenidas de otros sitios comprometidos.
+  - Fuerza bruta (probando todos los candidatos posibles).
+  - Diccionarios o listas de palabras de contraseñas comunes.
+  - Si bien la cantidad de permutaciones puede ser enorme con hardware de alta velocidad (como GPU) y servicios en la nube con muchos servidores en alquiler, el costo para un atacante es relativamente pequeño para descifrar contraseñas con éxito, especialmente cuando no se siguen las mejores prácticas para el hash.
+- Las contraseñas seguras almacenadas con algoritmos hash **modernos** y el uso de las **mejores prácticas de hash** deberían ser prácticamente imposibles de descifrar para un atacante.
+
+### Salting
+
+- Un salt es una **cadena única generada aleatoriamente** que se agrega a cada contraseña (no al hash) como parte del proceso de hash.
+- Como el salt es único para cada usuario, un atacante tiene que descifrar los hash de uno en uno utilizando el salt respectivo en lugar de calcular un hash una vez y compararlo con cada hash almacenado.
+- Esto hace que descifrar un gran número de hashes sea significativamente más difícil, ya que el tiempo necesario aumenta en proporción directa al número de hashes.
+- El salt también protege contra los hash previos a la computación de un atacante mediante rainbow-tables o búsquedas en bases de datos.
+- Finalmente, el salt significa que es imposible determinar si dos usuarios tienen la misma contraseña sin descifrar los hash, ya que los diferentes salts darán como resultado diferentes hash incluso si las contraseñas son las mismas.
+- Los algoritmos de hash modernos como Argon2id, bcrypt y PBKDF2 agregan salts automáticamente a las contraseñas, por lo que no se requieren pasos adicionales al usarlas.
+
+### Peppering
+
+- Además de salt, se puede usar **pepper** como capa adicional de protección.
+- Su objetivo es evitar que un atacante pueda descifrar cualquiera de los hashes si solo tiene acceso a la base de datos, por ejemplo, si ha explotado una vulnerabilidad de inyección SQL u obtenido una copia de seguridad de la base de datos.
+- Una de las varias formas de pepper es aplicar hash a las contraseñas como de costumbre y **cifrar los hashes con una clave de cifrado simétrica antes de almacenar el hash de la contraseña en la base de datos, con la clave actuando como pepper**.
+- Las estrategias de pepper no afectan a la función de hashing de ninguna forma.
+- El pepper **se comparte** entre las contraseñas almacenadas, en lugar de ser única como el salt.
+- A diferencia del salt de contraseña, el pepper es secreto y **no debe almacenarse en la base de datos, si no que en "bóvedas secretas" o HSM (módulos de seguridad de hardware)**.
+- Como cualquier otra clave criptográfica, se debe considerar una estrategia de rotación de peppers.
+
+### Factor de trabajo
+
+- Es el número de iteraciones del algoritmo hash que se realizan para cada contraseña (generalmente son 2<sup>iteraciones_de_trabajo</sup>).
+- Su propósito es hacer que el cálculo del hash sea más costoso computacionalmente, lo que a su vez reduce la velocidad y/o aumenta el costo por el cual un atacante puede intentar descifrar el hash de la contraseña.
+- Generalmente se almacena en la salida hash.
+- Al elegirlo, es necesario encontrar un equilibrio entre seguridad y rendimiento. Determinar el factor de trabajo óptimo requerirá experimentación en los servidores que usa la aplicación.
+  - Los factores de trabajo más altos harán que los hashes sean más difíciles de descifrar para un atacante, pero también harán que el proceso de verificación de un intento de inicio de sesión sea más lento.
+  - Si el factor de trabajo es demasiado alto, esto puede degradar el rendimiento de la aplicación y también podría ser utilizado por un atacante para llevar a cabo un ataque DDoS al realizar una gran cantidad de intentos de inicio de sesión para agotar a la CPU del servidor.
+  - Como regla general, calcular un hash debería llevar menos de un segundo.
+- Una ventaja de tener un factor de trabajo es que éste se puede aumentar con el tiempo a medida que el hardware se vuelve más potente y más barato.
+  - El enfoque más común para actualizar el factor de trabajo es esperar hasta que el usuario se autentique y luego volver a codificar su contraseña con el nuevo factor de trabajo.
+  - Esto significa que diferentes hashes tendrán diferentes factores de trabajo y pueden resultar en que los hashes nunca se actualicen si el usuario no vuelve a iniciar sesión en la aplicación.
+  - Dependiendo de la aplicación, puede ser apropiado eliminar los hashes de contraseña más antiguos y solicitar a los usuarios que **restablezcan sus contraseñas** la próxima vez que necesiten iniciar sesión para evitar almacenar hash más antiguos y menos seguros.
+
+### Algoritmos de hash
+
+#### Elección
+
+- Existen una serie de algoritmos de hash modernos que se han diseñado específicamente para almacenar contraseñas de forma segura.
+- Esto significa que deben ser **lentos** (a diferencia de los algoritmos como MD5 y SHA-1, que fueron diseñados para ser rápidos), y **qué tan lentos son se puede configurar cambiando el factor de trabajo**.
+- Los sitios web **no deben ocultar qué algoritmo de hash de contraseñas usan**.
+  - Si se usa un algoritmo de hash de contraseñas moderno con los parámetros de configuración adecuados, debería ser seguro indicar al público qué algoritmos de hash de contraseñas están en uso.
+
+#### Argon2ID
+
+- Es el número 1 hoy en día.
+- Este algoritmo ganó el concurso de hash de contraseñas en 2015.
+- Posee 3 variantes.
+- Se debe usar la variante Argon2id para contraseñas, ya que proporciona un enfoque balanceado para resistir los ataques de canal lateral y basados en GPU.
+
+#### Scrypt
+
+- Función de derivación de claves de contraseñas creada por Percival.
+- Se usa en cripto.
+
+#### Bcrypt
+
+- Se considera la segunda mejor opción luego de Argon2id para contraseñas.
+- Su factor de trabajo mínimo debe ser 10.
+
 ## AO3-2021 - Inyección
 
 ---
