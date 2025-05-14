@@ -25,6 +25,10 @@
 - [Uso de Burp Suite Community Edition URL](https://www.youtube.com/watch?v=RAYTgCjWFFQ)
 - [Repo práctica 2](https://github.com/DSAinfo/2025-Error404)
 
+### Práctica 3
+
+- [Documento práctica 3](https://docs.google.com/document/d/1zKVt4pFiNLtA_cozOLY0_wvcCFM4g1G43LQGLQp7G4g/edit?usp=sharing)
+
 ## Cómo se aprueba la cursada?
 
 - Tenemos por un lado prácticas y por otro lado coloquios de teoría vía cátedras los cuales son multiple-choice y a desarrollar.

