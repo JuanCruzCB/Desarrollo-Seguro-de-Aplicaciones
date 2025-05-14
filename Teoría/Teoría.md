@@ -1289,9 +1289,183 @@ HSTS aborda las siguientes amenazas:
 
 ## AO3-2021 - Inyección
 
+### Concepto
+
+- Es la vulnerabilidad top 3 del OWASP.
+- Las fallas de inyección ocurren cuando se envían datos no confiables a un intérprete, como parte de un comando o consulta.
+  - Estos datos dañinos del atacante pueden engañar al intérprete para que ejecute comandos involuntarios o acceda a los datos sin la debida autorización.
+  - Estos ataques incluyen systemcalls, el uso de programas externos a través de comandos de shell, así como llamadas a bases de datos back-end a través de SQL (es decir, inyección de SQL).
+  - Los scripts escritos en Perl, Python y otros lenguajes pueden inyectarse y ejecutarse en aplicaciones mal diseñadas.
+  - Cada vez que una aplicación utiliza un intérprete de cualquier tipo, existe el peligro de introducir una vulnerabilidad de inyección.
+  - El concepto es idéntico entre todos los intérpretes.
+  - La revisión del código fuente es el mejor método para detectar si las aplicaciones son vulnerables a inyecciones.
+  - Seguido de cerca por pruebas automatizadas de todos los parámetros, encabezados, URL, cookies, JSON, SOAP y entradas de datos XML.
+
+### Tipos
+
+- Hay diversos tipos de inyección:
+  - SQL.
+  - NoSQL.
+  - Comandos de sistema operativo.
+  - Object-Relational Mapping (ORM).
+  - LDAP.
+  - Expresiones de lenguaje u Object Graph Navigation Library (OGNL).
+  - etc.
+
+### CWE
+
+- Las CWE incluidas en esta vulnerabilidad son:
+  - CWE-73: Control Externo de Nombre de archivos o ruta.
+  - CWE-79: Secuencia de Comandos en Sitios Cruzados (XSS).
+  - CWE-89: Inyección SQL.
+
+### Cuándo una aplicación es vulnerable a inyección?
+
+Una aplicación es vulnerable a ataques de este tipo cuando:
+
+- Los datos suministrados por el usuario **no son validados, filtrados o sanitizados por la aplicación**.
+- Se invocan consultas dinámicas o no parametrizadas, sin codificar los parámetros de forma acorde al contexto.
+- Se utilizan datos dañinos dentro de los parámetros de búsqueda en consultas Object-Relational Mapping (ORM), para extraer registros sensibles adicionales.
+- Los datos dañinos se usan directamente o se concatenan, de modo que el SQL o comando resultante contiene datos y estructuras con consultas dinámicas, comandos o procedimientos almacenados.
+
+### SQL Injection
+
+#### Concepto
+
+- Un ataque de inyección SQL consiste en la inserción de una consulta SQL parcial o completa a través de la entrada de datos o transmitida desde el cliente a la aplicación web.
+- Un ataque de inyección SQL exitoso puede:
+  - Leer/modificar/insertar/eliminar los datos de la DB.
+  - Ejecutar operaciones de administración en la DB (como cerrar el DBMS).
+  - Recuperar el contenido de un archivo dado existente en el archivo DBMS system.
+  - Escribir archivos en el filesystem.
+  - En algunos casos, emitir comandos para el sistema operativo.
+
+#### Ejemplo básico
+
+- Tenemos una consulta SQL que usa un parámetro que el usuario ingresa:
+
+```sql
+select title, text from news where id=$id
+```
+
+- Si el usuario ingresa el string: `id= "1 or 1 = 1"`
+- La consulta pasa a ser:
+
+```sql
+select title, text from news where id=1 or 1=1
+```
+
+- Lo cual, en vez de retornar un solo registro, retorna todos, ya que la condición `or 1=1` **siempre** es verdadera, y con que una de las dos partes del or sea verdadera, toda la condición múltiple es verdadera.
+
+#### Tipos
+
+Los ataques de inyección SQL se pueden dividir en las siguientes tres clases, según la manera en la que se obtienen los datos resultado de la query manipulada:
+
+- **Inband**:
+  - Los datos se extraen utilizando el mismo canal que se utiliza para inyectar el código SQL.
+  - Este es el tipo de ataque más sencillo, en el que los datos recuperados se presentan directamente en la página web de la aplicación.
+- **Out-of-band**:
+  - Los datos se recuperan utilizando un canal diferente.
+  - Por ejemplo, se genera un correo electrónico con los resultados de la consulta y se envía al evaluador.
+- **Inferential or Blind**:
+  - No hay transferencia real de datos, pero el tester puede reconstruir la información enviando solicitudes particulares y observando el comportamiento resultante del DB Server.
+
+#### Detección
+
+- El primer paso es comprender **cuándo la aplicación interactúa con la DB para acceder a algunos datos**.
+- Los ejemplos típicos de casos en los que una aplicación necesita comunicarse con una DB incluyen:
+
+  - **Formularios de autenticación**: cuando la autenticación se realiza mediante un formulario web, es probable que las credenciales del usuario se verifiquen con una DB que contenga todos los nombres de usuario y contraseñas.
+  - **Motores de búsqueda**: la cadena enviada por el usuario podría usarse en una consulta SQL que extraiga todos los registros relevantes de una DB.
+  - **Sitios de comercio electrónico**: es muy probable que los productos y sus características se almacenen en una DB.
+  - El tester debería hacer una lista de todos los campos utilizados, incluyendo campos ocultos, considerando HTTP headers y Cookies.
+
+- La primer prueba generalmente consiste en agregar una comilla simple (') o un punto y coma (;) al campo o parámetro bajo prueba.
+- La comilla simple (') puede utilizarse como un terminador de cadena y, si la aplicación no lo filtra, daría lugar a una consulta incorrecta.
+- El punto y coma (;) se usa para **finalizar una instrucción SQL** y, si no se filtra, también es probable que genere un error.
+- La salida de un campo vulnerable puede ser, por ejemplo:
+
+```
+Microsoft SQL Server Microsoft OLE DB Provider for ODBC Drivers error
+'80040e14' [Microsoft][ODBC SQL Server Driver][SQL Server]Unclosed
+quotation
+mark before the character string ''. /target/target.asp, line 113
+```
+
+```
+MySQL: You have an error in your SQL syntax; check the manual that
+corresponds to your MariaDB server version for the right syntax to use near
+''''' at line 1
+```
+
+- Un mensaje de error completo proporciona una gran cantidad de información al tester para montar un ataque de inyección exitoso.
+- Sin embargo, las aplicaciones a menudo no brindan tantos detalles:
+  - Se puede emitir un simple "Error 500 del servidor" o una página de error personalizada o respuesta por AJAX, lo que significa que debemos utilizar técnicas de inyección blind.
+- En cualquier caso, es muy importante probar cada campo por separado:
+  - Solo una variable debe variar mientras que todas las demás permanecen constantes, para saber con precisión cuáles parámetros son vulnerables y cuáles no.
+
+#### SQLi Fingerprinting
+
+- Cuando los testers pasan a una explotación de inyección SQL más avanzada, necesitan saber de qué motor es la DB backend.
+- El fingerprinting es una técnica que se puede utilizar para detectar software, protocolos de red, sistemas operativos o dispositivos de hardware (impresora, routers, APs, etc).
+- Se envían solicitudes específicas obteniendo información para perfilar la
+  aplicación.
+- Este sondeo generalmente examina:
+  - Los nombres y valores de los encabezados HTTP.
+  - Los nombres y formatos de los identificadores de sesión.
+  - El contenido de los mensajes de la página de error.
+  - La distinción entre mayúsculas y minúsculas de la ruta de URL patrones de ruta de URL.
+  - Extensiones de archivo y si existen archivos y directorios específicos del software.
+- En el contexto de SQLi, el fingerprinting se usa para saber exactamente el tipo específico de base de datos y a veces hasta el motor o versión exacta que está detrás de una aplicación vulnerable a inyección SQL.
+- Se logra probando diferentes funciones o sintaxis que son únicas para cada motor de base de datos, por ejemplo:
+  - `SELECT @@version;` funciona en MySQL.
+  - `SELECT version();` funciona en PostgreSQL.
+  - `SELECT @@servername;` es propio de SQL Server.
+  - `SELECT banner FROM v$version;` se usa en Oracle.
+- También se puede lograr provocando un error de sintaxis a propósito y analizar el mensaje de error, ya que éstos suelen ser distintos en cada motor.
+
+#### Técnicas de explotación
+
+##### Union
+
+##### Boolean
+
+##### Error based
+
+##### Time delay
+
+##### Out-of-band
+
+#### Prevención/defensas
+
+##### Principales
+
+##### Adicionales
+
+#### Prepared Statements
+
+#### Stored Procedures
+
+#### Escaping User Input
+
+#### Explotación automatizada
+
+
 ---
 
 <h1 align="center">Clase 8 - 13 de mayo, 2025</h1>
+
+## ?
+
+---
+
+<h1 align="center">Clase 9 - 20 de mayo, 2025</h1>
+
+## ?
+
+---
+
+<h1 align="center">Clase 10 - 27 de mayo, 2025</h1>
 
 ## ?
 
