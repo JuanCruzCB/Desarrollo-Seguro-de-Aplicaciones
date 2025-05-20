@@ -1287,7 +1287,7 @@ HSTS aborda las siguientes amenazas:
 - Se considera la segunda mejor opción luego de Argon2id para contraseñas.
 - Su factor de trabajo mínimo debe ser 10.
 
-## AO3-2021 - Inyección
+## A03-2021 - Inyección
 
 ### Concepto
 
@@ -1723,7 +1723,187 @@ corresponds to your MariaDB server version for the right syntax to use near
 
 <h1 align="center">Clase 8 - 13 de mayo, 2025</h1>
 
-## ?
+## XSS
+
+### Definición
+
+- XSS (Cross-Site Scripting) es una vulnerabilidad de seguridad web que permite a un atacante inyectar código malicioso (típicamente JavaScript) en sitios web que visitan otros usuarios.
+- Ocurre cuando una aplicación web incluye **datos no validados o no escapados proporcionados por el usuario en su propia salida HTML**. Esto permite que el código malicioso se ejecute en el navegador de otros usuarios cuando visitan la página afectada.
+- El ejemplo típico es tener un input, y el atacante, en vez de ingresar un simple string, ingresa código HTML, JavaScript, o HMTL + JavaScript (vía tag \<script>) que quiere que se concatene al HTML original, para atacar a los usuarios que ingresen a la página.
+
+### Tipos
+
+#### Stored
+
+- Ocurre cuando se almacena en la base de datos el input de usuario sin sanitizar y luego se usa este input para formar el código HTML de la respuesta, que será procesado por el navegador.
+- Es el tipo más severo ya que un solo atacante puede llegar a afectar a todos los usuarios que usan la página.
+
+#### Reflected
+
+##### Concepto
+
+- El script malicioso se incluye directamente en la petición HTTP (por ejemplo, en los parámetros de la URL, en un formulario enviado por método GET, o en otros encabezados HTTP).
+- El servidor recibe esta petición, y si no sanitiza correctamente los datos, incluye el script malicioso en la respuesta HTML que envía al navegador del usuario.
+- El navegador ejecuta este script al renderizar la página.
+- El script malicioso **no se almacena de forma permanente** en el servidor.
+- La vulnerabilidad se explota engañando a la víctima para que haga clic en un enlace especialmente manipulado o envíe un formulario con el payload malicioso.
+- El impacto se limita a los usuarios que acceden a la URL o interactúan con la petición manipulada.
+
+##### Contextos
+
+- Los contextos en XSS Reflected son los diferentes **lugares** dentro del código HTML donde el atacante puede inyectar su código malicioso.
+- La importancia de entender el contexto radica en que el payload del XSS debe adaptarse al contexto específico para ser ejecutado correctamente. Un payload que funciona dentro de una etiqueta \<script> probablemente no funcionará directamente dentro de un atributo HTML como href o onclick.
+- **Contexto HTML**:
+  - El más básico, donde el código inyectado se interpreta directamente como HTML.
+- **Contexto de Atributo HTML**:
+  - La entrada del usuario se refleja dentro del valor de un atributo de una etiqueta HTML.
+- **Contexto JavaScript**:
+  - La entrada del usuario se refleja dentro de un bloque de código JavaScript.
+- **Contexto de URL (dentro de href o src)**:
+  - La entrada del usuario se utiliza para construir una URL.
+- **Contexto de CSS (dentro de etiquetas \<style> o atributos style)**:
+  - Aunque menos común, la entrada del usuario a veces puede reflejarse dentro de estilos CSS.
+
+#### DOM Based
+
+- La vulnerabilidad reside en el código JavaScript del lado del cliente en lugar del código del lado del servidor.
+- El script malicioso no se envía al servidor ni se refleja en la respuesta HTML original.
+- En cambio, el payload malicioso manipula el Document Object Model (DOM) en el navegador de la víctima a través de JavaScript vulnerable que **ya está presente** en la página.
+
+### Impacto
+
+- Una vulnerabilidad XSS, al ser explotada, permite el robo de info sensible del usuario, incluido el robo de sesiones o credenciales, y ataques de phishing.
+- También permite a un atacante realizar cualquier acción en el sitio a nombre de la víctima e incluso "tomar control" del navegador.
+- XSS al ser explotada puede hacer que los usuarios pierdan confianza en el sitio. Además, en el caso de ataques masivos, puede haber consecuencias legales a una empresa por robo de datos personales.
+
+### Cómo evitarlo
+
+- **Input validation**:
+  - Una correcta validación y sanitización de inputs constituye una primera línea de defensa ante XSS.
+- **Output encoding**:
+  - Encodear el output antes de mostrarlo/escribirlo en el HTML de la respuesta dependiendo el contexto:
+    - HTML Entity.
+    - HTML Attribute Encoding.
+    - URI Encoding.
+    - JavaScript Encoding.
+    - CSS Encoding.
+- **CSP**:
+  - Content Security Policy.
+  - Capa de seguridad adicional que ayuda a prevenir y mitigar ataques de varios tipos, incluido XSS.
+  - Un navegador compatible con CSP solo ejecutará scripts de archivos fuentes especificados en una whitelist de dominios, ignorando por completo cualquier otro script (incluyendo scripts in-line y los atributos HTML de manejo de eventos). Esta whitelist se define vía el header HTTP `Content-Security-Policy`.
+- **Flag HTTPOnly**:
+  - Setear esta flag en las cookies hace que no se puedan manipular desde JavaScript y por lo tanto reduce el impacto de explotación.
+
+## A03-2021 - NoSQL Injection
+
+### Concepto
+
+- Las bases de datos NoSQL no usan estructuras de datos organizadas como lo hacen las DB SQL.
+- Ejemplo de una query para una DB SQL:
+
+```sql
+SELECT *
+FROM accounts
+WHERE username = $username AND password = $password
+```
+
+- Y esa query traducida para una DB NoSQL:
+
+```php
+db.accounts.find(
+  {username: username, password: password}
+);
+```
+
+### Ejemplo
+
+- Si el atacante logra inyectar:
+
+```
+{
+  "username": "admin",
+  "password": {$gt: ""}
+}
+```
+
+- En MongoDB, $gt selecciona los documentos donde el campo es mayor que el valor especificado y si comparamos las passwords con "", siempre retorna true.
+- Es similar al `or 1 = 1` de SQL.
+
+## A03-2021 - Template Injection
+
+### Concepto
+
+- Los template engines son los motores que se usan en todos los frameworks de desarrollo, por ejemplo:
+  - Smarty.
+  - JinjA07:2021.
+  - Twig.
+  - Mako.
+- Al igual que cuando se manipula SQL lo que hace el atacante es manipular los llamados a los templates.
+- Ejemplo con Twig para generar mails:
+
+```php
+$output = $twig->render("Dear {first_name}", array("first_name" => $user.first_name));
+```
+
+- El problema está cuando el usuario puede cambiar su email.
+
+```php
+$output = $twig->render($_GET['custom_email'],array("first_name" =>$user.first_name));
+```
+
+- Ejecutando comandos:
+
+```php
+custom_email = {{7 * 7}}
+$output= 49
+```
+
+- Imprimiendo componentes internos de la aplicación que sólo deberían verse del lado del servidor:
+
+```php
+custom_email={{self}} ->
+$output= Object of class _TwigTemplate_7ae62e538221c11 could not be converted to string
+```
+
+## A03-2021 - Command Injection
+
+### Concepto
+
+- Ataque en el que el objetivo es la ejecución de comandos arbitrarios en el sistema operativo host a través de una aplicación vulnerable.
+- Este tipo de ataque es posible cuando una aplicación pasa datos no seguros proporcionados por el usuario (formularios, cookies, encabezados HTTP, etc.) a **una shell del sistema**.
+- Ejemplo:
+
+  - Tenemos una página que lista el contenido de un directorio pasado como parámetro vía URL: `http://www.pepe.com/get.pl?usuario=pepe`
+  - En la app:
+
+  ```php
+  system("ls /home/$_GET['usuario']");
+  ```
+
+  ```php
+  system("ls /home/pepe");
+  ```
+
+  - Incluyendo párametros maliciosos que permitan modificar lo que originalmente hacía el comando, se podrían listar otros directorios.
+  - Por ejemplo, si se pasa el string `pepe/../juan`: `http://www.pepe.com/get.pl?usuario=pepe/../juan`
+
+  ```php
+  system("ls /home/$_GET['usuario']");
+  ```
+
+  - Se convierte en:
+
+  ```php
+  system("ls /home/pepe/../juan");
+  ```
+
+  - Que a su vez se convierte en:
+
+  ```php
+  system("ls /home/juan");
+  ```
+
+  - También se podrían pasar muchos más comandos, separándolos con punto y coma (\;), como: `http://www.pepe.com/get.pl?usuario=pepe/../juan; rm -fr /tmp`
 
 ---
 
