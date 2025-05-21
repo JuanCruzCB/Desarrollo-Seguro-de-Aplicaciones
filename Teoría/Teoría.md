@@ -1907,13 +1907,13 @@ $output= Object of class _TwigTemplate_7ae62e538221c11 could not be converted to
 
 ---
 
-<h1 align="center">Clase 9 - 20 de mayo, 2025</h1>
+<h1 align="center">Clase 9 - 27 de mayo, 2025</h1>
 
 ## ?
 
 ---
 
-<h1 align="center">Clase 10 - 27 de mayo, 2025</h1>
+<h1 align="center">Clase 10 - 3 de junio, 2025</h1>
 
 ## ?
 
