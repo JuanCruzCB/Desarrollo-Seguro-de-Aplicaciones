@@ -2,8 +2,6 @@
 
 ## Importante
 
-### General
-
 - [Material de la cátedra](https://catedras.linti.unlp.edu.ar/course/view.php?id=1287)
 - [CTFs de la cátedra](https://ctf.dsa.linti.unlp.edu.ar/)
 - [Repositorio de la cátedra](https://github.com/DSAinfo/CTFS-Writeups)
@@ -13,21 +11,26 @@
   - Sandra Zilla (práctica): szilla@info.unlp.edu.ar
   - Miguel Carbone (práctica): mcarbone+dsa@linti.unlp.edu.ar
 
-### Práctica 1
+## Práctica
+
+### 1
 
 - [Documento práctica 1](https://docs.google.com/document/d/116bLLGzduvVYHJcxtHo0gP3eAJMnfSVGsXdWwXFmgJ4/edit?usp=sharing)
 - [Llaves PGP 1](https://keys.openpgp.org/)
 - [Llaves PGP 2](https://keyserver.ubuntu.com/)
 
-### Práctica 2
+### 2
 
 - [Documento práctica 2](https://docs.google.com/document/d/1YLNYXie--ZsqTcrEyFosSA3loAryMWYaFuzHzaBZld8/edit?usp=sharing)
 - [Uso de Burp Suite Community Edition URL](https://www.youtube.com/watch?v=RAYTgCjWFFQ)
 - [Repo práctica 2](https://github.com/DSAinfo/2025-Error404)
 
-### Práctica 3
+### 3
 
 - [Documento práctica 3](https://docs.google.com/document/d/1zKVt4pFiNLtA_cozOLY0_wvcCFM4g1G43LQGLQp7G4g/edit?usp=sharing)
+- [Repo práctica 3](https://github.com/DSAinfo/2025-Error404)
+
+## Teoría
 
 ## Cómo se aprueba la cursada?
 
