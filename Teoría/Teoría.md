@@ -1909,11 +1909,182 @@ $output= Object of class _TwigTemplate_7ae62e538221c11 could not be converted to
 
 <h1 align="center">Clase 9 - 27 de mayo, 2025</h1>
 
-## ?
+## Ataque de explotación de nuevos TLDs (@mrd0x.zip)
+
+- mr.d0x (también conocido como mrd0x) es un investigador de seguridad.
+- El ataque de mr.d0x se basa en la confusión que genera el nuevo TLD `.zip` (lanzado por Google en mayo de 2023) con la famosa extensión de archivo `.zip` que conocemos para los archivos comprimidos.
+- Los pasos clave del ataque son:
+
+1. **Registro de dominios `.zip` maliciosos**: Los atacantes registran nombres de dominio que terminan en .zip (por ejemplo, invoice.zip, update.zip, document.zip, o incluso mrd0x.zip como demostración). Estos dominios pueden parecer muy legítimos y confundirse con un archivo comprimido.
+2. **Ingeniería social**: El atacante envía correos electrónicos de phishing, mensajes de chat o publicaciones en redes sociales que incitan a la víctima a hacer clic en un enlace que parece ser un archivo `.zip` descargable. El texto del mensaje suele ser urgente o atractivo.
+3. **Emulación de un explorador de archivos en el navegador**: Cuando la víctima hace clic en el enlace, no descarga un archivo, sino que es redirigida a un sitio web (que es el dominio `invoice.zip`). Lo ingenioso de la técnica de mr.d0x es que esta página web está diseñada con HTML y CSS para simular la interfaz de un software de descompresión de archivos (como WinRAR o el Explorador de Archivos de Windows) dentro del propio navegador.
+4. **Descarga de malware o robo de credenciales**: Si la víctima "extrae" el supuesto archivo o hace clic en un "ejecutable" dentro de la simulación, la página puede iniciar la descarga de un archivo malicioso real (por ejemplo, un troyano, ransomware o un infostealer). La página también podría presentar un formulario de inicio de sesión falso (por ejemplo, para Microsoft 365, Google, etc.) con el pretexto de que el usuario necesita autenticarse para ver el contenido del "archivo ZIP". Si el usuario introduce sus credenciales, estas son robadas por el atacante.
+
+- Efectividad:
+  - La similitud visual entre un dominio `.zip` y una extensión de archivo `.zip` explota una expectativa común de los usuarios. La gente está acostumbrada a ver enlaces que terminan en `.zip` como descargas directas.
+  - La emulación de una interfaz familiar (WinRAR o Explorador de Archivos) aumenta la credibilidad del ataque y reduce las sospechas del usuario.
+  - Aunque la URL en la barra de direcciones del navegador muestra el dominio `.zip`, muchos usuarios no prestan suficiente atención o no comprenden la implicación de un TLD que parece una extensión de archivo.
+
+## A04:2021 - Diseño Inseguro
+
+### Concepto
+
+- Nueva categoría en el Top 10 del 2021.
+- Se centra en los riesgos relacionados con el diseño y las fallas de arquitectura, exhortando a un mayor uso de modelado de amenazas, patrones de diseño seguros, y arquitecturas de referencia.
+- Es necesario ir más allá de la programación y adoptar actividades cruciales para obtener Seguridad por Diseño.
+- Debemos "mover a la izquierda" del proceso de desarrollo las actividades de seguridad.
+
+### CWEs
+
+Las CWE notables incluidas son:
+
+- **CWE-209**: Generación de mensaje de error que contiene información confidencial.
+- **CWE-256**: Almacenamiento desprotegido de credenciales.
+- **CWE-501**: Violación de las fronteras de confianza.
+- **CWE-522**: Credenciales protegidas insuficientemente.
+- **CWE-640**: Mecanismo de recuperación de contraseña débil.
+
+### Diseño Inseguro vs Implementación Insegura
+
+- Existe una diferencia entre un **diseño inseguro** y una **implementación insegura**.
+- Incluso un diseño seguro puede tener defectos de implementación que conduzcan a vulnerabilidades que pueden explotarse.
+- Un diseño inseguro no se puede arreglar con una implementación perfecta → los controles de seguridad necesarios nunca se crearon para defenderse de ataques específicos.
+
+### Diseño Seguro
+
+- Se refiere al proceso de planificar y crear software incorporando principios y prácticas de seguridad **desde las etapas iniciales del desarrollo**.
+- El objetivo es prevenir vulnerabilidades y ataques, garantizando que el software sea resistente frente a amenazas y riesgos de seguridad.
+- Este enfoque proactivo implica considerar la seguridad en cada una de las fases del Ciclo de Vida del Desarrollo del Software:
+  - Pasar de SDLC a S-SDLC (Software Development Life Cycle a Secure Software Development Life Cycle).
+
+### Ciclo de Desarrollo Seguro (S-SDLC)
+
+Las fases típicas del S-SDLC incluyen pensar en seguridad en todas las etapas del SDLC:
+
+- **Planificación**: Evaluar riesgos y estandares, certificaciones, etc.
+- **Análisis de Requisitos**: Incorporar requisitos de seguridad, modelado de amenazas, etc.
+- **Diseño**: Diseñar pensando en minimizar problemas de seguridad. Incluir revisiones de diseño.
+- **Desarrollo / Implementación**: Usar metodologias de desarrollo seguro, SAST, etc.
+- **Pruebas**: Incorporar DAST, etc.
+- **Despliegue**: Revisión de seguridad (pentesting), vuln scans, etc.
+- **Mantenimiento**: Vuln scans, monitoreo de seguridad y gestión de parches, etc.
+- **Retiro**: Tener un plan de desactivación seguro.
+
+### Prevención
+
+1. Establecer y usar un ciclo de desarrollo seguro apoyado en Profesionales.
+2. Establecer y usar principios de diseño seguros:
+   1. Defensa en profundidad.
+   2. Principio de menor privilegio / Zero Trust.
+   3. Modelado de amenazas.
+3. Escribir pruebas unitarias y de integración para validar que todos los flujos críticos son resistentes al modelo de amenazas.
+4. Separar las capas del sistema y las capas de red según las necesidades de exposición y protección.
+5. Limitar el consumo de recursos por usuario o servicio.
+
+### Ejemplos de ataques
+
+#### 1
+
+- Un flujo de trabajo de recuperación de credenciales que incluya preguntas y respuestas. Esto está prohibido por NIST 800-63b, OWASP ASVS y OWASP Top 10.
+- No se puede confiar en preguntas y respuestas como evidencia de la identidad de la persona solicitante ya que más de una persona puede conocer las respuestas.
+- Dicho código debe quitarse y reemplazarse por un diseño más seguro.
+
+#### 2
+
+- Un sitio web de e-commerce de una cadena minorista no tiene protección contra bots administrados por revendedores que compran GPUs de alta gama para revender en sitios web de subastas.
+- Esto crea una publicidad terrible para los fabricantes de GPUs y los propietarios de cadenas minoristas y una mala sangre duradera con entusiastas que no pueden obtener estas tarjetas a ningún precio.
+- El diseño cuidadoso de anti-automatización y las reglas de lógica de negocio, como compras realizadas a los pocos segundos de disponibilidad, pueden identificar compras no auténticas y rechazar dichas transacciones.
+
+## A05:2021 - Configuración de Seguridad Incorrecta
+
+### Concepto
+
+- La configuración de seguridad incorrecta puede suceder a cualquier nivel: stack de la aplicación, servidor web, dispositivos de red, DB, frameworks usados, storages, etc.
+- Ascendió una posición, del sexto lugar al quinto, comparado a la versión anterior del Top 10.
+
+### CWEs
+
+- **CWE-16**: Configuración.
+- **CWE-388**: Error Handling.
+- **CWE-611**: Restricción incorrecta de entidades externas referenciadas de XML.
+
+### La aplicación es vulnerable si..
+
+- Le falta el hardening de seguridad adecuado en cualquier parte del stack o permisos configurados de forma errónea en servicios cloud (AWS, Azure, GCP, etc).
+- Tiene funciones innecesarias habilitadas o instaladas (puertos, servicios, plugins, páginas, cuentas o privilegios innecesarios).
+- Las cuentas predeterminadas y sus contraseñas aún están habilitadas y sin cambios.
+- El manejo de errores revela a los usuarios rastros de la pila u otros mensajes de error demasiado explícitos y detallados.
+- El software está desactualizado y/o es vulnerable.
+
+### Detección
+
+- Los escáneres automatizados son útiles para detectar configuraciones erróneas, el uso de cuentas o configuraciones predeterminadas, servicios innecesarios, opciones heredadas, etc.
+- Los defectos frecuentemente dan a los atacantes acceso no autorizado a algunos datos o funciones del sistema. En ocasiones, estos errores resultan en todo el sistema quedando comprometido.
+- No depende solo del desarrollador, hay que trabajar en conjunto con el sysadmin.
+- Hay varias herramientas útiles para la detección:
+  - Observatorio Mozilla.
+  - Shodan.
+  - Google Hacking Database.
+
+### Ejemplos
+
+#### 1
+
+- Se instala una aplicación, pero no se deshabilitan las cuentas por defecto ni se deshabilita la administración.
+- Al descubrir la página de administración, el atacante no tiene más que usar las credenciales conocidas.
+
+#### 2
+
+- No está deshabilitada la opción de Directory Listing en el web server.
+- El atacante accede directamente a todos los archivos del filesystem.
+- Ejemplo: Google search: "index of" "last modified" xls.
+
+#### 3
+
+- Los errores se muestran a los usuarios.
+- Los atacantes aman la información de más.
+- [Ejemplo que revela información sensible del sitio al producirse un error](http://www.mininterior.gov.ar/asdasd):
+
+  ```
+  Not Found
+
+  The requested URL was not found on this server.
+  Apache/2.4.62 (Debian) Server at www.mininterior.gov.ar Port 80
+  ```
+
+#### 4
+
+- Un sitio web usa un almacenamiento en un bucket S3 para alojar imagenes públicas.
+- Los permisos de acceso permiten el acceso sin restricciones desde Internet.
+
+### Prevención
+
+- Realizar procesos de hardening siguiendo buenas prácticas de seguridad asociadas para la tecnología de interés.
+- Los entornos de desarrollo, QA y producción deben configurarse de forma idéntica, con diferentes credenciales utilizadas en cada uno → DevOps.
+- Este proceso debe automatizarse para minimizar el esfuerzo requerido para configurar un nuevo entorno seguro.
+- Una plataforma mínima sin funciones, componentes, documentación ni ejemplos innecesarios. Eliminar o no instalar características o frameworks que no se usan.
 
 ---
 
 <h1 align="center">Clase 10 - 3 de junio, 2025</h1>
+
+## ?
+
+---
+
+<h1 align="center">Clase 11 - 10 de junio, 2025</h1>
+
+## ?
+
+---
+
+<h1 align="center">Clase 12 - 17 de junio, 2025</h1>
+
+## ?
+
+---
+
+<h1 align="center">Clase 13 - 24 de junio, 2025</h1>
 
 ## ?
 
