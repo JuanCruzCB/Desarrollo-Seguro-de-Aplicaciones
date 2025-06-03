@@ -5,6 +5,7 @@
 - [Material de la cátedra](https://catedras.linti.unlp.edu.ar/course/view.php?id=1287)
 - [CTFs de la cátedra](https://ctf.dsa.linti.unlp.edu.ar/)
 - [Repositorio de la cátedra](https://github.com/DSAinfo/CTFS-Writeups)
+- [Documento ejercicios adicionales CTF](https://docs.google.com/document/d/18TDfF9U79F2gIqNepdLjhuvPEDxL0f7GKfLxARP-wrw/edit?usp=sharing)
 - Contacto
   - Einar Lanfranco (teoría): einar@linti.unlp.edu.ar
   - Nicolás Macia (teoría): nmacia@info.unlp.edu.ar
