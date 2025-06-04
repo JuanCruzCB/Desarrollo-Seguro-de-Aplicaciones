@@ -24,12 +24,17 @@
 
 - [Documento práctica 2](https://docs.google.com/document/d/1YLNYXie--ZsqTcrEyFosSA3loAryMWYaFuzHzaBZld8/edit?usp=sharing)
 - [Uso de Burp Suite Community Edition URL](https://www.youtube.com/watch?v=RAYTgCjWFFQ)
-- [Repo práctica 2](https://github.com/DSAinfo/2025-Error404)
+- [Repo práctica 2](https://github.com/DSAinfo/2025-Error404/tree/main/practica2)
 
 ### 3
 
 - [Documento práctica 3](https://docs.google.com/document/d/1zKVt4pFiNLtA_cozOLY0_wvcCFM4g1G43LQGLQp7G4g/edit?usp=sharing)
-- [Repo práctica 3](https://github.com/DSAinfo/2025-Error404)
+- [Repo práctica 3](https://github.com/DSAinfo/2025-Error404/tree/main/practica3)
+
+### 4
+
+- [Documento práctica 4](https://docs.google.com/document/d/1-eH-NIdDKwYCSlMGTm4nbWzGQRm3V_9ZChBdLf7vCeY/edit?usp=sharing)
+- [Repo práctica 4](https://github.com/DSAinfo/2025-Error404/tree/main/practica4)
 
 ## Teoría
 
