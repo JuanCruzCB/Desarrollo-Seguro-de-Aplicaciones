@@ -2068,7 +2068,185 @@ Las fases típicas del S-SDLC incluyen pensar en seguridad en todas las etapas d
 
 <h1 align="center">Clase 10 - 3 de junio, 2025</h1>
 
-## ?
+## A06:2021 - Componentes Vulnerables y Desactualizados
+
+### Componente
+
+- Un componente es cualquier parte de código que sea **reutilizable**.
+- Suelen ser paquetes de código que solucionan algo en particular.
+- Puede ser propietario u open source.
+  - Si el componente es open source, uno puede ver el código, revisarlo, generar reportes para que se corrijan bugs con el mismo, hacer pull requests para aportar soluciones, etc.
+  - Si el componente es propietario, todas estas ventajas desaparecen y la peligrosidad escala mucho más rápido.
+- Puede ser del mismo desarrollador o de otro.
+  - Cada componente que no es desarrollado por el dueño de la aplicación es código de un tercero. Debido a esto, no sabemos a ciencia cierta cómo o con qué políticas fue desarrollado. Dependemos de este tercero para que parchee, mantenga y asegure el componente.
+- Las licencias pueden generar problemas al usar componentes.
+- Ejemplos:
+  - Paquetes de Python.
+  - Gems de Ruby.
+  - Nugets de .NET.
+  - Plugins de Wordpress.
+  - Apache, Nginx, Tomcat, etc.
+
+### Uso de componentes que poseen vulnerabilidades
+
+- Los componentes como bibliotecas, frameworks y otros módulos se ejecutan con los mismos **privilegios** que la aplicación.
+- Si se explota un componente vulnerable, el ataque puede provocar una pérdida de datos o tomar el control del servidor.
+- Las aplicaciones y API que usan componentes con vulnerabilidades conocidas pueden debilitar las defensas de las aplicaciones y permitir diversos ataques e impactos.
+
+### Cuándo es vulnerable la aplicación?
+
+1. Cuando no se conoce las versiones de todos los componentes que la aplicación usa. Esto incluye las dependencias anidadas de los componentes.
+2. Cuando el software del componente es vulnerable, no tiene soporte o se encuentra desactualizado. Esto incluye el SO, servidor web o de aplicaciones, DBMS, APIs y todos los componentes, ambientes de ejecución y bibliotecas.
+3. Cuando no se analizan los componentes periódicamente ni se realiza seguimiento de los boletines de seguridad de los componentes que se están usando.
+4. No se parchea o actualiza la plataforma subyacente, frameworks y dependencias, con un enfoque basado en riesgos. Esto sucede comúnmente en ambientes en los cuales la aplicación de parches se realiza de forma mensual o trimestral bajo control de cambios, lo que deja a la organización abierta innecesariamente a varios días o meses de exposición a vulnerabilidades ya solucionadas.
+5. No asegura la configuración de los componentes correctamente (**A05**).
+
+### Virtual Patch
+
+- Un parche virtual o virtual patch es una capa de aplicación de políticas de seguridad que evita e informa del intento de explotación de una vulnerabilidad conocida.
+- Funciona cuando la capa de aplicación de seguridad **analiza las transacciones e intercepta los ataques en tránsito, por lo que el tráfico malintencionado nunca llega a la aplicación web**.
+- El resultado del parcheo virtual es que, si bien el código fuente real de la app en sí no se modificó, el intento de explotación no es exitoso.
+- Realizable a traves de WAFs (Web Application Firewall) como Owasp AppSensor, ModSecurity WAF, ESAPI WAF y otros.
+
+### Zero Day
+
+- Es un ataque contra un sistema que tiene como objetivo la ejecución de código malicioso gracias al conocimiento de vulnerabilidades que **son desconocidas para los usuarios y para el fabricante del producto**.
+- Como las vulnerabilidades son desconocidas, es obvio que aún no han sido parcheadas.
+- Es frecuente en el mercado negro la venta de exploits de este tipo.
+
+### Comprobaciones del Software
+
+#### SCA (Software Composition Analysis)
+
+- Consiste en identificar todos los componentes de terceros presentes en un software y rastrear debilidades presentes en ellos que podrían ser explotadas por actores maliciosos.
+- Evitar los ataques de cadena de suministro de software, una de las tendencias de ciberseguridad más peligrosas de los últimos años.
+- Ejemplos en Python:
+  - **pip-audit**.
+  - **Safety CLI**.
+
+#### SAST (Static Application Security Testing)
+
+- Es una verificación del código fuente **sin estar en ejecución**, consiste básicamente en leer el código en busca de problemas de seguridad.
+- Los analistas suelen utilizar herramientas automatizadas para ayudarse en esto, ya que los análisis manuales son lentos (entre 100-200 líneas por hora) y hay cientos de condiciones que pueden generar un problema de seguridad en el código.
+- Estas son pruebas de **caja blanca**, porque se necesita acceso al código fuente para poder realizarlas.
+- Ejemplos en Python:
+  - **Bandit** (también realiza SCA).
+  - **Semgrep**.
+
+#### DAST (Dynamic Application Security Testing)
+
+- Sirve para detectar vulnerabilidades en **tiempo de ejecución** del software.
+- Es una auditoría de **caja negra**, es decir, ni los analistas de seguridad ni las herramientas que emplean tienen acceso al código fuente, sino que deben evaluarlo desde la óptica de un potencial atacante.
+- Se asocia al pentesting.
+
+## A07:2021 - Fallas de Identificación y Autenticación
+
+### Concepto
+
+- Las funciones de autenticación y gestión de sesiones de la app están mal implementadas.
+- Esto le permite a los atacantes comprometer usuarios y contraseñas, token de sesiones, o explotar otras fallas de implementación para asumir la identidad de otros usuarios, ya sea de forma temporal o permanente.
+
+### Identidad digital, autenticación y gestión de sesiones
+
+- La **identidad digital** es la representación única de un usuario (u otro sujeto) mientras realiza una transacción en línea.
+- La **autenticación** es el proceso de verificar que una persona, entidad o sitio web es quien dice ser.
+  - En el contexto de las aplicaciones web se realiza comúnmente mediante el envío de un nombre de usuario o ID y uno o más elementos de información privada que solo un usuario determinado debe conocer.
+- La **gestión de sesiones** es un proceso por el cual un servidor mantiene el estado de la autenticación de los usuarios para que el usuario pueda seguir usando el sistema sin tener que volver a autenticarse.
+- La confirmación de la identidad y la gestión de sesiones del usuario son fundamentales para protegerse contra ataques relacionados con la autenticación.
+
+### Cuándo es vulnerable la aplicación?
+
+1. Cuando permite ataques automatizados como [Credential Stuffing](https://owasp.org/www-community/attacks/Credential_stuffing), cuando el atacante ya posee una lista de pares de usuario y contraseña válidos.
+2. Cuando permite ataques de fuerza bruta y/o ataques automatizados.
+3. Cuando permite contraseñas por defecto, débiles o muy conocidas, como "Password1", "Contraseña1" o "admin/admin".
+4. Cuando posee procesos débiles o inefectivos en el proceso de recuperación de credenciales, como "respuestas basadas en el conocimiento", las cuales no se pueden implementar de forma segura.
+5. Cuando almacena las contraseñas en texto plano o cifradas con métodos de hashing débiles (A02).
+6. Cuando no posee autenticación multi-factor o ésta fue mal implementada.
+7. Expone Session IDs en las URLs, no la invalida correctamente o no la rota satisfactoriamente luego del cierre de sesión o de un período de tiempo determinado.
+
+### Ejemplos
+
+#### 1
+
+- **Contraseña débil + no usar MFA**.
+- La mayoría de los ataques de autenticación ocurren debido al uso de contraseñas como único factor.
+- Las mejores prácticas requieren la rotación y complejidad de las contraseñas y desalientan el uso de claves débiles por parte de los usuarios.
+- Se recomienda el uso de autenticación multi-factor (MFA).
+
+#### 2
+
+- Aplicación de reserva de vuelos que soporta re-escritura de direcciones URL poniendo los identificadores de sesión en la propia URL: `http://example.com/sale/sitems;jsessionid=2P0OC2JM0O2JV%5C?dest=Hawaii`.
+- Un usuario autenticado en el sitio quiere mostrar la venta a sus amigos.
+- Envía por email el enlace anterior, sin ser consciente de que está proporcionando su **identificador de sesión**.
+- Cuando sus amigos utilicen el anterior enlace utilizarán su sesión y su tarjeta de crédito.
+
+#### 3
+
+- No se establecen correctamente los tiempos de desconexión en la aplicación.
+- Un usuario usa una PC pública para acceder al sitio.
+- En lugar de utilizar la función de "Cerrar sesión", cierra la pestaña del navegador y se marcha.
+- Un atacante utiliza el mismo navegador al cabo de una hora, y ese navegador todavía se encuentra autenticado, por lo que roba su identidad.
+
+### Niveles de autenticación
+
+#### NIST
+
+- NIST: National Institute of Standards and Technology
+- [NIST 800-63b: Digital Identity Guidelines](https://pages.nist.gov/800-63-3/sp800-63b.html) describe tres niveles de garantía de autenticación denominados nivel de garantía de autenticación (Authentication Assurance Level o AAL).
+
+#### Nivel 1: Contraseñas
+
+- El nivel 1 está reservado para aplicaciones de menor riesgo que no contienen PII (Personally Identifiable Information) u otros datos privados.
+- En este nivel solo se requiere autenticación de factor único, generalmente mediante el uso de una contraseña.
+- Para las contraseñas se necesitan políticas, se necesita almacenarlas de forma segura y a veces debemos permitir que los usuarios las restablezcan.
+- Las contraseñas deben cumplir **como mínimo** los siguientes requisitos:
+  - Tener al menos 8 caracteres de longitud si también se usa la autenticación multifactor y otros controles. Si MFA no es posible, debe aumentarse a por lo menos 10 caracteres.
+  - Todos los caracteres ASCII, así como el carácter de espacio, deben ser aceptables.
+  - Fomentar el uso de contraseñas y frases de contraseña largas.
+  - Eliminar los requisitos de complejidad, ya que se ha determinado que su eficacia es limitada. En su lugar, se recomienda la adopción de MFA o contraseñas de mayor longitud.
+  - Asegurarse de que las contraseñas utilizadas no sean contraseñas de uso común que ya se hayan filtrado en leaks anteriores.
+    - Se pueden bloquear las [1000 o 10000 contraseñas más comunes](https://github.com/danielmiessler/SecLists/tree/master/Passwords) que cumplen con los requisitos de longitud anteriores y se encuentran en listas de contraseñas comprometidas.
+  - La longitud máxima de la contraseña no debe establecerse demasiado baja, ya que evitará que los usuarios creen frases de contraseña. Una longitud máxima común es de 64 caracteres [debido a limitaciones en ciertos algoritmos de hash](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#maximum-password-lengths). Es importante establecer una longitud máxima de contraseña para evitar [ataques DoS de contraseñas largas](https://www.acunetix.com/vulnerabilities/web/long-password-denial-of-service/).
+  - No truncar silenciosamente las contraseñas cuando son más largas que la longitud máxima. [Página Ejemplo](https://autogestion.segurosrivadavia.com/).
+  - Garantizar la rotación de credenciales cuando se filtre una contraseña o en el momento de la identificación del compromiso.
+  - Incluir un medidor de seguridad de contraseña para ayudar a los usuarios a crear una contraseña más compleja y bloquear contraseñas comunes y [previamente expuestas](https://haveibeenpwned.com/Passwords).
+  - Implementar un [mecanismo de recuperación de contraseña segura](https://www.owasp.org/index.php/Forgot_Password_Cheat_Sheet). Es común que una aplicación tenga un mecanismo para que un usuario obtenga acceso a su cuenta en caso de que olvide su contraseña. Un buen flujo de trabajo de diseño para una función de recuperación de contraseña utilizará elementos de autenticación multifactor.
+    - Por ejemplo, puede hacer una [pregunta de seguridad](https://www.owasp.org/index.php/Choosing_and_Using_Security_Questions_Cheat_Sheet), algo que saben, y luego enviar un token generado a un dispositivo, algo que poseen.
+  - Implementar [almacenamiento seguro de contraseñas](https://www.owasp.org/index.php/Password_Storage_Cheat_Sheet). Para proporcionar controles de autenticación sólidos, una aplicación debe almacenar de forma segura las credenciales de usuario. Además, se deben implementar controles criptográficos de manera que si una credencial (por ejemplo, una contraseña) se ve comprometida, el atacante no tenga acceso inmediato a esta información.
+
+#### Nivel 2: Autenticación Multi-factor
+
+- Este nivel está reservado para aplicaciones de mayor riesgo que contienen "PII u otra información personal disponible en línea".
+- En este nivel se requiere autenticación de múltiples factores, incluida la contraseña de un solo uso (One Time Password) u otras formas de implementación de múltiples factores.
+- La autenticación multifactor (MFA) garantiza que los usuarios sean quienes dicen ser al exigirles que se identifiquen con una combinación de:
+  - Algo que **sabe**: contraseña o PIN.
+  - Algo que **tiene**: un token o un teléfono.
+  - Algo que **es**: datos biométricos, como una huella digital.
+- El uso de contraseñas como único factor proporciona una seguridad débil.
+- Las soluciones de factores múltiples proporcionan una solución más sólida al requerir que un atacante adquiera más de un elemento para autenticarse con el servicio.
+- La biometría cuando se emplea como factor único de autenticación, no se considera secretos aceptables para la autenticación digital.
+- Pueden obtenerse en línea o tomando una fotografía de alguien con un teléfono con cámara (por ejemplo, imágenes faciales) con o sin su conocimiento, levantadas de objetos que alguien toca (por ejemplo, huellas dactilares latentes) o capturadas con imágenes de alta resolución (por ejemplo, iris patrones).
+- La biometría debe usarse solo como parte de la autenticación multifactor con un autenticador físico (algo que vos tenés).
+- Las Apps de HomeBankings y billeteras, como MercadoPago, ahora ofrecen autenticacion solo por huella digital para realizar transferencias.
+
+#### Nivel 3: Autenticación Criptográfica
+
+- Este nivel se requiere cuando el impacto de los sistemas comprometidos podría ocasionar daños personales, pérdidas financieras significativas, dañar el interés público o involucrar violaciones civiles o penales.
+- Requiere autenticación que se "basa en la prueba de posesión de una clave a través de un protocolo criptográfico".
+- Este tipo de autenticación se utiliza para lograr el **mayor nivel de garantía de autenticación**.
+- Normalmente, esto se hace a través de **módulos criptográficos de hardware**.
+
+#### Niveles extra: Transporte Seguro y Reautenticación
+
+- **Transmitir contraseñas solo a través de TLS o algún otro método de transporte seguro**:
+  - Se debe acceder exclusivamente a la página de inicio de sesión y a todas las páginas autenticadas posteriores a través de TLS u otro medio de transporte fuerte.
+  - La página de inicio de sesión inicial, denominada "página de inicio de sesión", debe publicarse a través de TLS u otro medio de transporte fuerte.
+  - Si no se usa TLS u otro medio de transporte fuerte para la página de inicio de sesión, un atacante puede modificar la acción del formulario de inicio de sesión, lo que hace que las credenciales del usuario se publiquen en una ubicación arbitraria.
+  - Si no se usa TLS u otro transporte fuerte para las páginas autenticadas después de iniciar sesión, el atacante puede ver el ID de sesión no cifrado y comprometer la sesión autenticada del usuario.
+- **Requerir reautenticación para funciones sensibles**:
+  - Para mitigar el secuestro de sesiones y el [CSRF](https://owasp.org/www-community/attacks/csrf), es importante solicitar las credenciales actuales de una cuenta antes de actualizar información confidencial de la cuenta, como la contraseña del usuario, el correo electrónico del usuario o antes de transacciones confidenciales, como enviar una compra a una nueva dirección.
+  - Sin esta contramedida, un atacante puede ejecutar transacciones confidenciales a través de un ataque CSRF o sin necesidad de conocer las credenciales actuales del usuario.
+  - Además, un atacante puede obtener acceso físico temporal al navegador de un usuario o robar su ID de sesión para hacerse cargo de la sesión del usuario.
 
 ---
 
