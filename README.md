@@ -38,6 +38,11 @@
 
 ## Teoría
 
+## Trabajo Integrador
+
+- [Documento Trabajo Integrador](https://www.placeholder.com)
+- [Repo Trabajo Integrador](https://github.com/DSAinfo/2025-Error404/tree/main/trabajo-integrador)
+
 ## Cómo se aprueba la cursada?
 
 - Tenemos por un lado prácticas y por otro lado coloquios de teoría vía cátedras los cuales son multiple-choice y a desarrollar.
