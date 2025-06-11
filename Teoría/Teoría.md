@@ -2252,7 +2252,7 @@ Las fases típicas del S-SDLC incluyen pensar en seguridad en todas las etapas d
 
 <h1 align="center">Clase 11 - 10 de junio, 2025</h1>
 
-## ?
+## A10-2021
 
 ---
 
