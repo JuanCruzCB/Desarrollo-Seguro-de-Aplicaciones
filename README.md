@@ -40,7 +40,7 @@
 
 ## Trabajo Integrador
 
-- [Documento Trabajo Integrador](https://www.placeholder.com)
+- [Documento Trabajo Integrador](https://docs.google.com/document/d/1U5-16nDRMS10_Ee8fOzxgAjMLPLoK_EMdeM_VmgO5j4/edit?usp=sharing)
 - [Repo Trabajo Integrador](https://github.com/DSAinfo/2025-Error404/tree/main/trabajo-integrador)
 
 ## Cómo se aprueba la cursada?
