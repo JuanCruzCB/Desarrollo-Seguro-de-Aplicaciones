@@ -1925,7 +1925,7 @@ $output= Object of class _TwigTemplate_7ae62e538221c11 could not be converted to
   - La emulación de una interfaz familiar (WinRAR o Explorador de Archivos) aumenta la credibilidad del ataque y reduce las sospechas del usuario.
   - Aunque la URL en la barra de direcciones del navegador muestra el dominio `.zip`, muchos usuarios no prestan suficiente atención o no comprenden la implicación de un TLD que parece una extensión de archivo.
 
-## A04:2021 - Diseño Inseguro
+## A04-2021 - Diseño Inseguro
 
 ### Concepto
 
@@ -1995,7 +1995,7 @@ Las fases típicas del S-SDLC incluyen pensar en seguridad en todas las etapas d
 - Esto crea una publicidad terrible para los fabricantes de GPUs y los propietarios de cadenas minoristas y una mala sangre duradera con entusiastas que no pueden obtener estas tarjetas a ningún precio.
 - El diseño cuidadoso de anti-automatización y las reglas de lógica de negocio, como compras realizadas a los pocos segundos de disponibilidad, pueden identificar compras no auténticas y rechazar dichas transacciones.
 
-## A05:2021 - Configuración de Seguridad Incorrecta
+## A05-2021 - Configuración de Seguridad Incorrecta
 
 ### Concepto
 
@@ -2068,7 +2068,7 @@ Las fases típicas del S-SDLC incluyen pensar en seguridad en todas las etapas d
 
 <h1 align="center">Clase 10 - 3 de junio, 2025</h1>
 
-## A06:2021 - Componentes Vulnerables y Desactualizados
+## A06-2021 - Componentes Vulnerables y Desactualizados
 
 ### Componente
 
@@ -2139,7 +2139,7 @@ Las fases típicas del S-SDLC incluyen pensar en seguridad en todas las etapas d
 - Es una auditoría de **caja negra**, es decir, ni los analistas de seguridad ni las herramientas que emplean tienen acceso al código fuente, sino que deben evaluarlo desde la óptica de un potencial atacante.
 - Se asocia al pentesting.
 
-## A07:2021 - Fallas de Identificación y Autenticación
+## A07-2021 - Fallas de Identificación y Autenticación
 
 ### Concepto
 
@@ -2252,13 +2252,95 @@ Las fases típicas del S-SDLC incluyen pensar en seguridad en todas las etapas d
 
 <h1 align="center">Clase 11 - 10 de junio, 2025</h1>
 
-## A10-2021
+## A10-2021 - Falsificación de Solicitudes del Lado del Servidor (SSRF)
+
+### Concepto
+
+- Las fallas SSRF ocurren cuando una app web está obteniendo un recurso remoto sin validar la URL proporcionada por el usuario.
+- Permite que un atacante coaccione la app para que envíe una solicitud falsificada a un destino inesperado, incluso cuando está protegido por firewall, VPN, u otro.
+- Como las apps web modernas brindan a los usuarios funciones convenientes, la búsqueda de una URL es un escenario común. Por esto, la incidencia de SSRF viene en aumento desde hace años.
+- La gravedad de SSRF es cada vez mayor debido a los servicios en la nube y la complejidad de las arquitecturas.
+
+### Prevención
+
+- **Desde la capa de red**:
+  - Segmentar la funcionalidad de acceso a recursos remotos en redes separadas.
+  - Hacer cumplir las políticas de firewall "denegar por defecto" o las reglas de control de acceso a la red para bloquear todo el tráfico de la intranet excepto el esencial.
+    - Establecer la propiedad y un ciclo de vida para las reglas de firewall basadas en aplicaciones.
+    - Registrar en logs todos los flujos de red aceptados y bloqueados en firewalls.
+- **Desde la capa de aplicación**:
+  - Sanitizar y validar todos los datos de entrada que el cliente ingresa.
+  - Hacer cumplir el esquema de URL, el puerto y destino a través de una lista positiva de items permitidos.
+  - No enviar respuestas en formato crudo a los clientes.
+  - Deshabilitar las redirecciones HTTP.
+  - Tener en cuenta la coherencia de la URL para evitar ataques como el enlace de DNS y las condiciones de carrera de "tiempo de verificación, tiempo de uso" (TOCTOU en inglés).
+- No resulta efectivo prevenir el SSRF vía el uso de una lista de denegación o una expresión regular. Los atacantes poseen listas de payloads, herramientas y habilidades para eludir las listas de denegación.
+
+### Manejo de identidades y permisos en AWS
+
+#### Identity y Access Management
+
+- AWS Identity and Access Management = **IAM**.
+- Permite aplicar permisos a servicios y recursos de AWS.
+- Quién:
+  - Usuarios de la workforce.
+  - Workloads con roles IAM.
+- Puede acceder:
+  - Permisos con políticas de IAM.
+- Para:
+  - Recursos de la organización AWS.
+
+#### Identities
+
+- **Users**: Un usuario con capacidad de autenticarse y hacer uso de recursos mediante credenciales, las cuales pueden ser usuario y contraseña o Access Keys.
+  - Las Access Keys son API KEYs asociadas al usuario que podría usar en un script para ejecutar acciones con los permisos que dicho usuario tenga. Se pueden borrar y volver a crear.
+- **Grupos**: Colección de usuarios con requerimientos en común.
+- **Roles**: Un rol tiene vinculado un conjunto de políticas.
+  - Pueden ser asumidos por entidades autorizadas (servicios o usuarios).
+  - No se asignan directamente a usuarios o a grupos.
+  - Necesitan ser asumidos por otra entidad para brindar los permisos que estén asociados al rol: usuarios/grupos o servicios/recursos.
+- **Policy**: Define permisos que pueden ser asignados por un administrador a una entidad.
+
+#### Security Token Service (STS)
+
+- Es un servicio de AWS que tiene una API que permite solicitar una credencial temporal.
+- Está pensado para un usuario IAM o para un recurso.
+- Tiene la ventaja de que a diferencia del usuario/contraseña o la access keys, expira en minutos o algunas horas, lo cual es mucho más seguro por si se vulneran las credenciales.
+- Pueden renovarse todas las veces que se solicite, siempre y cuando el solicitante mantenga los permisos para hacerlo.
+
+### Instance Metadata
+
+#### Concepto
+
+- Son metadatos de las instancias (máquinas virtuales) de la mayoría de proveedores cloud.
+- Uso más trivial:
+  - Brinda info de la instancia que el admin puede usar para configurar o administrar la instancia en ejecución.
+  - La info provista puede ser el hostname, eventos, security groups, instance profile, etc.
+- La metadata también permite a la instancia conocer las credenciales temporales STS cada vez la solicite.
+- Cada instancia puede tener uno o más roles.
+- Ejemplo:
+  - Si la instancia necesita acceder a archivos en algún almacenamiento, hay dos opciones principales:
+    - Crear un usuario con permisos de acceso al almacenamiento y dejar las access keys en el código.
+    - Asignarle un rol a la instancia con permisos para acceder al recurso.
+    - Esta última es más segura.
+
+#### Acceso
+
+- Para acceder a la metadata, hay que hacer una petición web a la IP 169.254.169.254 o fd00:ec2::254 en IPv6.
+- Solo se puede acceder desde la instancia misma y no cuenta con mecanismo de autenticación ni encriptación. Cualquier software corriendo en la instancia puede mirar la metadata → por eso no se debe almacenar info sensible ahí.
+- Hay dos versiones para acceder a la metadata:
+  - IMDSv2: método request-response.
+  - IMDSv2: método orientado a sesión y fuertemente recomendado.
+
+#### Userdata
+
+- La metadata puede contener dentro userdata, que es una sección que se puede incluir durante el ciclo de vida de la instancia y podría por ejemplo tener un script de inicialización de la instancia.
 
 ---
 
 <h1 align="center">Clase 12 - 17 de junio, 2025</h1>
 
-## ?
+## A07-2021
 
 ---
 
