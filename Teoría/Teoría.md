@@ -2508,9 +2508,247 @@ Las fases típicas del S-SDLC incluyen pensar en seguridad en todas las etapas d
 
 ### Session ID Fingerprinting
 
-###
+- El nombre usado por el Session ID no debe ser demasiado descriptivo ni dar detalles innecesarios sobre el propósito y significado del ID.
+- Estos nombres usados en apps web más comunes se pueden descubrir facilmente con fingerprinting:
+  - **PHPSESSID** (PHP)
+  - **JSESSIONID** (J2EE)
+  - **ASP.NET_SessionId** (ASP .NET)
+- Por lo tanto, el nombre del Session ID puede revelar las tecnologías y lenguajes de programación que usa la aplicación.
+- Se recomienda cambiar este nombre predeterminado a un nombre genérico, como **id**.
 
-##
+### Cómo debe ser el Session ID
+
+El Session ID debe ser:
+
+1. Lo suficientemente **largo** (al menos 128 bits) para evitar ataques de fuerza bruta, donde un atacante puede revisar todo el rango de valores de ID y verificar la existencia de sesiones válidas.
+2. **Impredecible**, es decir lo suficientemente aleatorio para evitar ataques de tipo guessing, donde un atacante puede adivinar o predecir el ID de una sesión válida vía técnicas de análisis estadístico.
+3. Insignificante en cuanto a su contenido, es decir, nunca debe incluir ningún tipo de información confidencial.
+
+### Mecanismos de manejo de estado de la sesión
+
+#### Vía GET
+
+- Por ejemplo: `http://www.ejemplo.com/index.php?ID=883002889306`
+- **Ventajas**:
+  - Siempre funciona, no importa si el browser tiene cookies on u off.
+  - Facilita el acceso para el usuario si es un sitio persistente en el tiempo y se guarda en favoritos.
+- **Desventajas**:
+  - Cualquier persona en el mismo equipo podría revisar el historial o los favoritos y seguir la mismo URL.
+  - La información de la URL puede ser almacenada en un Log por intermediarios como Firewalls o servidores proxy.
+  - Es bastante fácil cambiar la URL y el ID de sesión asociado usando el navegador, por ende facilita un ataque.
+  - Cuando el usuario navega a otro sitio web, el ID de la sesión puede ser enviada a ese sitio web a través del campo `HTTP_REFERER`.
+
+#### Vía POST
+
+- Por ejemplo, con campos ocultos en un formulario:
+
+```html
+<form method="POST" action="http://www.ejemplo.com">
+  <input type="hidden" name="sessionid" value="883002889306" />
+</form>
+```
+
+- **Ventajas**:
+  - No es tan obvio como enviar el ID en la URL, un poco menos atacable.
+  - Permite a los usuarios almacenar la URL de la página sin info de la sesión.
+  - Siempre funciona; no importa que el browser tenga cookies off.
+- **Desventajas**:
+  - A pesar de que requiere un mayor nivel de conocimiento, se puede atacar.
+  - El contenido de la página tiende a ser más complejo.
+
+#### Vía Cookies
+
+- Proporciona varias características de seguridad en forma de atributos de cookies que se pueden utilizar para proteger el intercambio de ID de sesión.
+- Por ejemplo (parte de la respuesta enviada por el servidor al navegador cliente):
+
+```
+Set-Cookie: sessionID=”883002889306”; path=”/”;
+domain=”www.ejemplo.com”; expires=”2008-09-01 00:00:00GMT”;
+version=0
+```
+
+- **Ventajas**:
+  - El uso cuidadoso de cookies persistentes puede ser usado para regular el acceso de los usuarios a través del tiempo.
+  - Hay más opciones disponibles para manejar los timeouts de la sesión.
+  - La funcionalidad de las cookies está disponible en todos los browsers.
+- **Desventajas**:
+  - Las cookies persistentes son almacenadas como simples archivos de texto en el equipo del usuario, por lo que es relativamente fácil copiarla a otros dispositivos.
+  - Las Cookies tienen limitación de tamaño, así que no pueden ser usadas para almacenar grandes cantidades de información del estado de la sesión.
+  - Las Cookies son enviadas con cada página y-o archivo solicitado por el browser usando la directiva `SET-COOKIE`.
+- **Atributos**:
+  - **Secure**: Indica a los navegadores web que solo envíen la cookie a través de una conexión HTTPS (SSL/TLS) y no HTTP. Garantiza que un atacante no pueda simplemente capturar el ID de sesión del tráfico del navegador web.
+  - **HttpOnly**: Indica a los navegadores web que no permitan que los scripts (por ejemplo, JavaScript o VBscript) tengan la capacidad de acceder a las cookies a través del objeto DOM `document.cookie`. Esta protección es obligatoria para evitar el robo de ID de sesión a través de ataques XSS.
+  - **SameSite**: Permite que un servidor defina un atributo de cookie haciendo imposible que el navegador envíe esta cookie junto con solicitudes entre sitios. El objetivo principal es mitigar el riesgo de fuga de información de origen cruzado y proporciona cierta protección contra ataques de falsificación de solicitudes entre sitios.
+  - **Domain**: Indica a los navegadores web que solo envíen la cookie al dominio especificado y a todos los subdominios. Si no se configura este atributo, la cookie solo se envía al servidor de origen.
+  - **Path**: Indica a los navegadores web que solo envíen la cookie al directorio o subdirectorios especificados (o rutas o recursos) dentro de la app web. Si no se configura este atributo, la cookie solo se envía al directorio (o ruta) del recurso solicitado y la configuración de la cookie.
+  - **Max-Age o Expires**: Los mecanismos de gestión de sesiones basados en cookies pueden hacer uso de dos tipos de cookies, cookies no persistentes (o de sesión) y cookies persistentes. Si una cookie presenta los atributos `Max-Age` (que tiene preferencia sobre Expires) o Expires, se considerará una cookie persistente y el navegador web la almacenará en el disco hasta la fecha de vencimiento.
+
+### HTML5 Web Storage
+
+- **localStorage** y **sessionStorage** son mecanismos para almacenar pares nombre-valor del lado del cliente.
+- A diferencia de las cookies, los contenidos de estos dos mecanismos no se comparten automáticamente dentro de las solicitudes o respuestas del navegador y se usan para almacenar datos del lado del cliente.
+- Los datos almacenados usando la API **localStorage** son accesibles por páginas que se cargan desde el mismo origen.
+- Debido al potencial acceso concurrente desde ventanas / subprocesos separados, los datos almacenados usando localStorage pueden ser susceptibles a problemas de acceso compartido.
+- La API **sessionStorage** almacena datos dentro del contexto de la ventana desde la que se llamó, lo que significa que la pestaña 1 no puede acceder a los datos que se almacenaron desde la pestaña 2.
+
+### Tipos de mecanismos de gestión de sesiones
+
+- Hay dos tipos de mecanismos de gestión de sesiones para aplicaciones web:
+  - **Permisivos**: permite que la app web acepte inicialmente cualquier valor de ID de sesión establecido por el usuario como válido, creando una nueva sesión para él.
+  - **Estrictos**: Obliga a que la app web solo acepte valores de ID de sesión que hayan sido generados previamente por la app web.
+- Dependiendo del mecanismo de gestión de sesión utilizado, el ID de sesión se recibirá en un parámetro GET o POST, en la URL o en un encabezado HTTP (por ejemplo, cookies).
+
+### Generación y validación de los Session IDs
+
+- Los tokens de sesión deben ser manejados por el servidor web si es posible o generados mediante un generador de números aleatorios criptográficamente seguro.
+- Los ID de sesión deben considerarse **no confiables**, como cualquier otra entrada de usuario procesada por la aplicación web, y deben **validarse y verificarse minuciosamente**.
+- Si las aplicaciones web no validan y filtran los valores de ID de sesión no válidos antes de procesarlos, se pueden usar potencialmente para explotar otras vulnerabilidades web, como la inyección de SQL si los ID de sesión se almacenan en una base de datos relacional, o XSS persistente si los ID de sesión son almacenados y reflejados posteriormente por la aplicación web.
+
+### Renovación/regeneración de los Session IDs
+
+- La aplicación web debe **renovar o regenerar el ID de sesión después de cualquier cambio de nivel de privilegio** dentro de la sesión de usuario asociada.
+- El escenario más común en el que la regeneración del ID de sesión es obligatoria es durante el proceso de autenticación, ya que el nivel de privilegio del usuario cambia del estado no autenticado (o anónimo) al estado autenticado.
+- Se deben considerar otros escenarios comunes, como cambios de contraseña, cambios de permisos o cambio de un rol de usuario regular a un rol de administrador dentro de la aplicación web.
+- Los frameworks de desarrollo web más comunes proporcionan funciones y métodos de sesión para renovar el ID de sesión.
+
+### Expiración de la sesión
+
+- Para minimizar el período de tiempo que un atacante puede lanzar ataques sobre sesiones activas y secuestrarlas, es **obligatorio establecer tiempos de expiración para cada sesión, estableciendo la cantidad de tiempo que cada sesión permanecerá activa**.
+- La expiración insuficiente de la sesión por parte de la aplicación web aumenta la exposición de otros ataques basados en sesiones, ya que para que el atacante pueda reutilizar una ID de sesión válida y secuestrar la sesión asociada, debe seguir activa.
+- Cuanto más corto sea el intervalo de sesión, menor será el tiempo que un atacante tiene para usar la ID de sesión válida.
+- Todas las sesiones deben implementar un tiempo de espera activo o inactivo.
+- Este tiempo de espera define la **cantidad de tiempo que una sesión permanecerá activa en caso de que no haya actividad en la sesión**, cerrando e invalidando la sesión en el período de inactividad definido desde la última solicitud HTTP recibida por la aplicación web para una ID de sesión determinada.
+- Por ejemplo:
+  - Netflix: "continuar viendo"
+  - Homebankings: "sigues ahí?"
+- Las aplicaciones web deben proporcionar mecanismos que permitan a los usuarios conscientes de la seguridad cerrar activamente su sesión una vez que hayan terminado de usar la aplicación web.
+- Logout:
+  - Las aplicaciones web deben proporcionar un botón de cierre de sesión visible y fácilmente accesible que esté disponible en el encabezado o menú de la aplicación web y accesible desde cada recurso y página de la aplicación web, de modo que el usuario pueda cerrar manualmente la sesión cuando quiera.
+  - Cerrar sesión en instagram u otras apps no cumplen con esto.
+
+## A07-2021 - Ataques de sesión
+
+### Session Prediction
+
+- El ataque de predicción de sesión se centra en predecir los valores de ID de sesión que permiten a un atacante eludir el esquema de autenticación de la aplicación.
+- Al analizar y comprender el proceso de generación de ID de sesión, un atacante puede predecir un valor de ID de sesión válido y obtener acceso a la aplicación.
+- Como primer paso, el atacante debe recopilar algunos valores de ID de sesión válidos.
+- Luego, debe comprender la estructura del ID de sesión, la información que se usa para crearlo y el algoritmo de cifrado o hash que usa la aplicación para protegerlo.
+- Algunas implementaciones incorrectas utilizan ID de sesiones compuestas por nombre de usuario u otra información predecible, como la marca de tiempo o la dirección IP del cliente.
+- En el peor de los casos, esta información se utiliza en texto sin cifrar o se codifica utilizando algún algoritmo débil como la codificación base64.
+
+### Session Hijacking
+
+- El ataque de secuestro de sesión compromete al token de sesión al robar o predecir un token de sesión válido para obtener acceso no autorizado al servidor web.
+- El token de sesión puede verse comprometido de varias formas:
+  - Predictable session token.
+  - Session Sniffing.
+  - Client-side attacks (XSS, JS malicioso, Troyanos, etc).
+  - Ataques Man-in-the-middle.
+  - Ataques Man-in-the-browser.
+
+### Session Fixation
+
+- Session Fixation es un ataque que permite a un atacante secuestrar una sesión de usuario válida.
+- Al autenticar a un usuario, no asigna una nueva ID de sesión, por lo que es posible utilizar una ID de sesión existente.
+- El ataque consiste en obtener una ID de sesión válida (por ejemplo, conectándose a la aplicación), inducir a un usuario a autenticarse con esa ID de sesión y luego secuestrar la sesión validada por el usuario mediante el conocimiento de la ID de sesión utilizada.
+
+## JWT (JSON Web Token)
+
+### Concepto
+
+- Consiste en un [estándar abierto](https://datatracker.ietf.org/doc/html/rfc7519) basado en JSON para crear un token que sirva para enviar datos entre aplicaciones o servicios y garantizar que sean válidos y seguros.
+- Se puede jugar con ellos en este [sitio](https://jwt.io/).
+- Debido a que los JWT son solo cadenas seguras para URL, son fáciles de transmitir a través de parámetros de URL, etc.
+- JWT puede almacenar tantos datos JSON como se quiera y pueden decodificarse en un objeto JSON.
+
+### Confianza
+
+- Están firmados criptográficamente lo que significa que cualquier parte de confianza que tenga un JWT puede saber si el token fue modificado.
+- Esto implica que si la aplicación o servicio de API genera un token que dice que alguien es un usuario "gratuito" y luego alguien modifica el token para decir que es un usuario "administrador", podrá detectar esto y actuar en consecuencia.
+- Esta propiedad hace que los JWT sean **útiles para compartir información entre partes a través de la web donde la confianza es difícil de conseguir**.
+
+### Usos
+
+- Los JWT se usan normalmente como identificadores de sesión para aplicaciones web, aplicaciones móviles y servicios API.
+- A diferencia de los identificadores de sesión tradicionales como las cookies, que actúan como nada más que un puntero a los datos reales del usuario en el lado del servidor, los JWT normalmente contienen datos del usuario directamente.
+- La razón principal por la que los JWT se han vuelto populares en los últimos años (que solo existen desde 2014) es que pueden contener datos JSON arbitrarios lo cual los hace muy flexibles.
+
+### Beneficios vs Session IDs tradicionales
+
+- El beneficio principal de un JWT sobre un ID de sesión tradicional es que:
+  - Los JWT no tienen estado y pueden contener datos de usuario directamente
+  - Debido a que los JWT no tienen estado, no es necesario implementar ninguna sesión del lado del servidor (sin base de datos de sesión, caché de sesión, etc.)
+- Debido a que los JWT no tienen estado, cuando una aplicación del lado del servidor recibe un JWT, puede validarlo usando solo la "clave secreta" que se usó para crearlo, evitando así la penalización de rendimiento de hablar con una base de datos o caché en el backend, que agrega latencia a cada solicitud.
+
+### Estructura
+
+- Hay implementaciones en muchos lenguajes.
+- Es una cadena formada por 3 partes:
+
+```
+[Base64(HEADER)].[Base64(PAYLOAD)].[Base64(SIGNATURE)]
+```
+
+- **Header**: Indica el tipo de token y el algoritmo de firma. Se codifica en Base64.
+
+```json
+{
+  "typ": "JWT",
+  "alg": "HS256"
+}
+```
+
+- **Payload**: La información que queremos almacenar en el token en formato JSON y codificado en Base64URL. El payload solo es codificado en base64, por ende no es seguro guardar información sensible en él.
+
+```json
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "iat": 1516239022
+}
+```
+
+- **Signature**: Se aplica un algoritmo de hash sobre la cabecera, el payload y una clave secreta y se pasa a Base64URL.
+
+```js
+HMACSHA256(
+  base64UrlEncode(header) + "." + base64UrlEncode(payload),
+  "your-256-bit-secret"
+);
+```
+
+### Ejemplo
+
+```js
+header = '{"alg":"HS256","typ":"JWT"}';
+payload = '{"loggedInAs":"admin","iat":1422779638}';
+key = "secretkey";
+unsignedToken = encodeBase64(header) + "." + encodeBase64(payload);
+signature = HMAC - SHA256(key, unsignedToken);
+token =
+  encodeBase64(header) +
+  "." +
+  encodeBase64(payload) +
+  "." +
+  encodeBase64(signature);
+
+/*
+El token es:
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+eyJsb2dnZWRJbkFzIjoiYWRtaW4iLCJpYXQiOjE0MjI3Nzk2Mzh9.
+gzSraSYS8EXBxLN_oWnFSRgCzcmJmMjLiuyu5CSpyHI
+*/
+```
+
+### Seguridad
+
+- Debido a que los JWT se usan para identificar al cliente, si uno es robado o comprometido, un atacante tiene acceso completo a la cuenta del usuario de la misma manera que lo haría si el atacante hubiera comprometido el nombre de usuario y la contraseña del usuario.
+- Los JWT se pueden configurar para que caduquen automáticamente después de un período de tiempo establecido, los atacantes solo pueden usar su JWT para acceder al servicio hasta que caduque.
+- En general, los tokens deben tratarse como contraseñas y protegerse como tal.
+- Nunca deben compartirse públicamente y deben guardarse en almacenes de datos seguros.
+- Para las aplicaciones basadas en navegador, esto significa **nunca almacenar sus tokens en HTML5 Local Storage**.
+- [CheatSheet de JWT de OWASP](https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html).
 
 ---
 
