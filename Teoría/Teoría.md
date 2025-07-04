@@ -2340,12 +2340,180 @@ Las fases típicas del S-SDLC incluyen pensar en seguridad en todas las etapas d
 
 <h1 align="center">Clase 12 - 17 de junio, 2025</h1>
 
-## A07-2021
+## A07-2021 - Respuestas y errores
+
+### Concepto
+
+- Un atacante, para atacar a un sistema, siempre empieza con una fase de reconocimiento, donde intentará recopilar la mayor cantidad de información técnica (como propiedades de nombre y versión) del objetivo, como el servidor de aplicaciones, los marcos, las bibliotecas, etc.
+
+### Mensajes de error de la funcionalidad de autenticación
+
+- Los mensajes de error de cualquiera de los mecanismos de autenticación (inicio de sesión, restablecer la contraseña, recuperar la contraseña) tanto de HTTP como de HTML deben ser genéricos sin importar si:
+  - El ID de usuario o la contraseña eran incorrectos.
+  - La cuenta no existe.
+  - La cuenta está bloqueada o deshabilitada.
+  - Esto también aplica a la funcionalidad de registrarse, donde se debe responder de forma genérica si el usuario ya existe, por ejemplo.
+- Si estos mensajes se implementan mal, se pueden usar para fines de enumeración de ID de usuario y contraseña.
+
+### Objetivo
+
+- El objetivo es evitar la creación de un factor de discrepancia, que le permite a un atacante montar una acción de enumeración de usuarios contra la aplicación.
+- Es interesante notar que la propia lógica empresarial puede traer un factor de discrepancia relacionado con el **tiempo de procesamiento necesario**.
+- De hecho, dependiendo de la implementación, **el tiempo de procesamiento puede ser significativamente diferente según el caso (éxito o fracaso)**, lo que permite a un atacante montar un ataque Time-based (delta de algunos segundos, por ejemplo).
+
+### Mensajes incorrectos vs correctos
+
+- **Mensajes de Login incorrectos**:
+  - `Login for User foo: invalid password`.
+  - `Login failed, invalid user ID`.
+  - `Login failed; account disabled`.
+  - `Login failed; this user is not active`.
+- **Mensaje de login correcto**:
+  - `Login failed; Invalid user ID or password`.
+- **Mensajes de password recovery incorrectos**:
+  - `We just sent you a password reset link`.
+  - `This email address doesn't exist in our database`.
+- **Mensaje de password recovery correcto**:
+  - `If that email address is in our database, we will send you an email to reset your password`.
+- **Mensajes de Account creation incorrectos**:
+  - `This user ID is already in use`.
+  - `Welcome! You have signed up succesfully`.
+- **Mensaje de Account creation correcto**:
+  - `A link to activate your account has been emailed to the address provided`.
+
+### Códigos de error
+
+- La aplicación puede devolver un código de error HTTP diferente según la respuesta al intento de autenticación.
+- Puede responder con un 200 para un resultado positivo y un 403 para un resultado negativo.
+- Aunque se muestra una página de error genérica a un usuario, el código de respuesta HTTP puede diferir, lo que puede filtrar información sobre si la cuenta es válida o no y esto se puede explotar.
+- La divulgación de errores también se puede utilizar como factor de discrepancia.
+- [CheatSheet de manejo de errores de OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Error_Handling_Cheat_Sheet.html).
+
+## A07-2021 - Ataques automatizados
+
+### Concepto
+
+- Hay varios tipos de ataques automatizados que los atacantes pueden usar para intentar comprometer las cuentas de los usuarios. Los más comunes son:
+  - **Brute Force**: Probar muchas contraseñas de un diccionario u otra fuente en una sola cuenta.
+  - **Credential Stuffing**: Prueba de pares de nombre de usuario / contraseña obtenidos de los leaks de otro sitio, abusando el hecho de que muchas personas re-usan contraseñas y nombres de usuario.
+  - **Password Spraying**: Prueba de una única contraseña débil y común contra un gran número de cuentas diferentes.
+
+### Brute Force
+
+- En términos generales, consiste en que un atacante configure valores predeterminados, realice solicitudes a un servidor usando esos valores, y luego analice la respuesta.
+- Un atacante puede usar un ataque de diccionario o un ataque de fuerza bruta tradicional (con determinadas clases de caracteres, por ejemplo: alfanumérico, especial, sensible a mayúsculas y minúsculas).
+- Considerando el método dado, el número de intentos, la eficiencia del sistema que realiza el ataque y la eficiencia estimada del sistema que es atacado, el atacante puede calcular aproximadamente cuánto tiempo tomará enviar todos los valores predeterminados elegidos.
+- **WordList**:
+  - Combinación de caracteres hasta llegar al correcto.
+  - Se debe limitar o contextualizar este tipo de ataque para que el conjunto de valores no sea muy grande.
+  - Por ejemplo DNI: 8 dígitos [0-9]
+- **Crunch**:
+  - Crunch es un generador de WordList que permite generar combinaciones y permutaciones de caracteres.
+  - Por ejemplo, combinaciones de 4 números y 4 letras minúsculas:
+    ```
+    crunch 8 8 -t %%%%@@@@
+    Crunch will now generate the following amount of data: 41127840000 bytes 39222 MB 38 GB 0 TB 0 PB
+    Crunch will now generate the following number of lines: 4.569.760.000
+    ```
+- **Diccionarios**:
+  - Los ataques de fuerza bruta por diccionario se hacen atacando con una lista predefinida de credenciales.
+  - Por ejemplo: [contraseñas](https://github.com/danielmiessler/SecLists/tree/master/Passwords/); [usuarios](https://github.com/danielmiessler/SecLists/tree/master/Usernames).
+  - Combinando estos usuarios y contraseñas podemos generar un ataque de diccionario de millones de combinaciones.
+- **Hydra**:
+  - [THC-Hydra](https://github.com/vanhauser-thc/thc-hydra) es una herramienta para realizar bruteforcing.
+  - Cuenta con más de 30 protocolos compatibles (SO, Web, DBs, etc).
+  - Viene por defecto en Kali Linux.
+
+### Credential Stuffing
+
+- Es la inyección automática de pares de credenciales robadas (usuario / contraseña) para obtener acceso fraudulento a las cuentas de los usuarios.
+- Es un subconjunto de la categoría de ataque de fuerza bruta:
+  - Una gran cantidad de credenciales se ingresan automáticamente en los sitios web hasta que potencialmente coinciden con una cuenta existente, que el atacante puede luego secuestrar para sus propios fines.
+
+## A07-2021 - Protección frente a ataques automatizados
+
+### Idea
+
+- Se pueden implementar diferentes mecanismos de protección para protegerse contra estos ataques.
+- En muchos casos, estas defensas **no brindan una protección completa**, pero cuando varias de ellas se implementan con un enfoque de defensa en profundidad, se puede llegar a un nivel razonable de protección.
+
+### MFA
+
+- La autenticación multifactor es por lejos la mejor defensa contra la mayoría de los ataques relacionados con contraseñas, incluidos los ataques de fuerza bruta, y el análisis sugiere que habría detenido el 99,9% de las amenazas a las cuentas.
+- Como tal, **debe implementarse siempre que sea posible**; sin embargo, dependiendo de la audiencia de la aplicación, **puede que no sea práctico o factible hacer cumplir el uso de MFA**.
+- [CheatSheet de MFA de OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Multifactor_Authentication_Cheat_Sheet.html).
+
+### Bloqueo de cuenta
+
+- La protección más común contra los ataques de fuerza bruta es implementar el bloqueo de la cuenta, que evita más intentos de inicio de sesión durante un período después de una cierta cantidad de inicios de sesión fallidos.
+- El contador de inicios de sesión fallidos debe **asociarse con la cuenta en sí, en lugar de la dirección IP de origen**, para evitar que un atacante realice intentos de inicio de sesión desde una gran cantidad de direcciones IP diferentes vía VPNs o similar.
+- Hay una serie de factores diferentes que se deben tener en cuenta al implementar una política de bloqueo de cuenta para tener un equilibrio entre seguridad y usabilidad:
+  - El **número de intentos fallidos** antes de que se bloquee la cuenta (umbral de bloqueo).
+  - El **período de tiempo** en el que deben producirse estos intentos (ventana de observación).
+  - Cuánto **tiempo quedará bloqueada** la cuenta (duración del bloqueo). En lugar de implementar una duración de bloqueo fija (por ejemplo, 10 min), algunas aplicaciones utilizan un bloqueo **exponencial**, donde la duración del bloqueo comienza como un período muy corto (por ejemplo, un segundo), pero se duplica después de cada intento fallido de inicio de sesión.
+- Al diseñar un sistema de bloqueo de cuentas, se debe tener cuidado para evitar que se use para causar una denegación de servicio al bloquear las cuentas de otros usuarios.
+  - Una forma de hacerlo es permitir que el usuario de la función de contraseña olvidada inicie sesión, incluso si la cuenta está bloqueada.
+
+### CAPTCHA
+
+- El uso de un CAPTCHA eficaz puede ayudar a prevenir los intentos de inicio de sesión automatizados en las cuentas.
+- Sin embargo, muchas implementaciones de CAPTCHA tienen debilidades que permiten resolverlas mediante técnicas automatizadas o pueden ser subcontratadas a servicios que pueden resolverlas.
+- Como tal, el uso de CAPTCHA debe verse como un control de defensa en profundidad para hacer que los ataques de fuerza bruta consuman más tiempo y sean más costosos, en lugar de una medida preventiva.
+- Puede ser más fácil requerir que se resuelva un CAPTCHA solo después de una pequeña cantidad de intentos fallidos de inicio de sesión, en lugar de requerirlo desde el primer inicio de sesión.
+
+## A07-2021 - Uso de protocolos de autenticación sin contraseña
+
+### OAuth
+
+- Protocolo que permite a una aplicación autenticarse frente a un servidor como usuario, sin requerir contraseña ni ningún server de terceros que actúe como proveedor de identidad.
+- Usa un token generado por el servidor y proporciona cómo deben ocurrir los flujos de autorización, de modo que un cliente (como una aplicación móvil) pueda decirle al servidor qué usuario está usando el servicio.
+- La recomendación es utilizar e implementar OAuth 1.0a o OAuth 2.0, ya que se descubrió que **la primera versión (OAuth1.0) es vulnerable a la fijación de sesiones**.
+
+### OpenId
+
+- Protocolo basado en HTTP que usa proveedores de identidad para validar que un usuario es quien dice ser.
+- Es un protocolo muy simple que permite que un proveedor de servicios crear un **Single Sign-On** (SSO) inicial.
+- Esto permite al usuario reutilizar una única identidad dada a un proveedor de identidad OpenId confiable y ser el mismo usuario en varios sitios web, sin la necesidad de proporcionar la contraseña a ningún sitio web, excepto el proveedor de identidad OpenId.
+- Debido a su simplicidad y que proporciona protección de contraseñas, OpenId ha sido bien adoptado.
+- Algunos de los proveedores de identidad más conocidos para OpenId son Stack Exchange, Google, Facebook y Yahoo!
+- Para entornos no empresariales, OpenId se considera una opción segura y, a menudo, mejor, **siempre que el proveedor de identidad sea de confianza**.
+
+### SAML
+
+- Security Assertion Markup Language (SAML) compite con OpenId.
+- La versión más recomendada es la 2.0, ya que tiene características muy completas y proporciona una gran seguridad.
+- A diferencia de OpenId, está basado en XML.
+- Si bien OpenId se ha apoderado de la mayor parte del mercado, SAML suele ser la opción para aplicaciones empresariales: la razón de esto es a menudo que hay pocos proveedores de identidad OpenId que se consideren de clase empresarial, es decir que la forma en que validan la identidad del usuario no tiene altos estándares requeridos para la identidad empresarial.
+- [CheatSheet de SAML de OWASP](https://cheatsheetseries.owasp.org/cheatsheets/SAML_Security_Cheat_Sheet.html).
+
+## A07-2021 - Gestión de sesiones
+
+### Sesiones
+
+- Una sesión web es una **secuencia de transacciones de solicitud y respuesta HTTP de red asociadas con el mismo usuario**.
+- Las aplicaciones web modernas y complejas requieren la retención de información o estado sobre cada usuario durante la duración de múltiples solicitudes.
+- Por lo tanto, las sesiones brindan la **capacidad de establecer variables, como derechos de acceso y configuraciones de localización, que se aplicarán a todas y cada una de las interacciones que un usuario tenga con la aplicación web durante la duración de la sesión**.
+- HTTP es un protocolo sin estado, donde cada par de solicitud y respuesta es independiente de otras interacciones web.
+- Por lo tanto, para introducir el concepto de sesión, es necesario implementar capacidades de gestión de sesiones que vinculen los módulos de autenticación y control de acceso (o autorización) comúnmente disponibles en aplicaciones web.
+- Una vez que se ha establecido una sesión autenticada, la **ID de sesión (o token)** es temporalmente equivalente al método de autenticación más fuerte utilizado por la aplicación.
+
+### Session ID
+
+- El ID de sesión (o token) es un identificador único que se asigna al usuario al iniciar sesión en una aplicación web. Es un par nombre=valor (por ejemplo, sessionid=abc123).
+- Sirve para mantener el estado autenticado del usuario durante su interacción con la aplicación.
+- Se envía en cada solicitud HTTP para identificar al usuario y aplicar los controles de acceso correspondientes.
+- La aplicación y el usuario lo comparten e intercambian durante toda la duración de la sesión.
+- Si un atacante logra divulgar, capturar, predecir, forzar o fijar este ID, puede secuestrar la sesión del usuario.
+- El secuestro de sesión permite al atacante suplantar al usuario y acceder a sus funciones y datos dentro de la aplicación.
+
+### Session ID Fingerprinting
+
+###
+
+##
 
 ---
 
-<h1 align="center">Clase 13 - 24 de junio, 2025</h1>
+<h1 align="center">Clase 13 - 1 de julio, 2025</h1>
 
 ## ?
-
----
