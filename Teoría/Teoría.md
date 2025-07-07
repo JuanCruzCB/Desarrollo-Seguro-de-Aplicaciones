@@ -2754,4 +2754,94 @@ gzSraSYS8EXBxLN_oWnFSRgCzcmJmMjLiuyu5CSpyHI
 
 <h1 align="center">Clase 13 - 1 de julio, 2025</h1>
 
-## ?
+## A08-2021 - Fallas en el software y en la integridad de los datos
+
+### Concepto
+
+- Se centra en hacer suposiciones relacionadas con las **actualizaciones de software, los datos críticos y los pipelines de CI/CD sin verificación de integridad**.
+- Los fallos de integridad del software y de los datos están relacionados con código e infraestructura no protegidos contra alteraciones (integridad).
+  - Ejemplos de esto son cuando una aplicación depende de plugins, bibliotecas o módulos de fuentes, repositorios o redes de entrega de contenidos (CDN) no confiables.
+    - Un CDN (Content Delivery Network) es un conjunto de servidores interconectados a través de Internet cuya función principal es acelerar la carga de los sitios web para los usuarios.
+- Se destacan las siguientes CWEs:
+  - **CWE-829**: Inclusión de funcionalidades provenientes de fuera de la zona de confianza.
+  - **CWE-494**: Ausencia de verificación de integridad en el código descargado.
+  - **CWE-502**: Deserialización de datos no confiables.
+
+### CI/CD
+
+- Un pipeline CI/CD inseguro puede conducir a accesos no autorizados, la inclusión de código malicioso o el compromiso del sistema en general. Además, es común actualmente que las aplicaciones implementen funcionalidades de actualización, a través de las cuales se descargan nuevas versiones de la misma sin las debidas verificaciones de integridad que se realizaron al instalar la aplicación por primera vez.
+- Los atacantes potencialmente pueden cargar sus propias actualizaciones para que sean distribuidas y ejecutadas en todas las instalaciones.
+- Otro ejemplo es cuando objetos o datos son codificados o serializados en estructuras que un atacante puede ver y modificar, produciéndose una deserialización insegura.
+
+### Prevención
+
+1. Usar firmas digitales o mecanismos similares para verificar que el software o datos provienen efectivamente de la fuente esperada y que no fueron alterados.
+2. Asegurarse que las bibliotecas y dependencias, tales como `npm` o `maven` son utilizadas desde repositorios confiables. Si su perfil de riesgo es alto, considerar alojarlas en un repositorio interno cuyo contenido fue previamente analizado.
+3. Asegurarse que se utilice una herramienta de análisis de componentes de terceros, cómo OWASP Dependency Check u OWASP CycloneDX, con el fin de verificar la ausencia de vulnerabilidades conocidas.
+4. Asegurarse que se utilice un proceso de revisión de cambios de código y configuraciones para minimizar las posibilidades de que código o configuraciones maliciosas sean introducidos en el pipeline.
+5. Asegurarse que el pipeline CI/CD posea adecuados controles de acceso, segregación y configuraciones que permitan asegurar la integridad del código a través del proceso de build y despliegue.
+6. Asegurarse que datos sin cifrar o firmar no son enviados a clientes no confiables sin alguna forma de verificación de integridad o firma electrónica con el fin de detectar modificaciones o la reutilización de datos previamente serializados.
+
+### Serialización y deserialización
+
+- La **serialización** consiste en convertir a un objeto en un formato de datos que se puede restaurar más tarde.
+  - Comunmente se serializan objetos para guardarlos en el almacenamiento o para enviarlos en las comunicaciones.
+- La **deserialización** es lo contrario, tomar datos estructurados de algún formato y reconstruirlos en un objeto.
+  - Hoy en día el formato más popular para serializar es JSON. En el pasado era XML.
+
+### Ejemplos
+
+#### 1
+
+**Actualizaciones no firmadas**:
+
+- Muchos routers domésticos, decodificadores de televisión, firmware de dispositivos, entre otros, no verifican las firmas de sus actualizaciones de firmware.
+- El firmware sin firmar es un objetivo creciente para los atacantes y se espera que empeore.
+- Esto es una gran preocupación, ya que muchas veces no existe otro mecanismo para remediarlo que corregirlo en una versión futura y esperar a que las versiones anteriores caduquen.
+
+#### 2
+
+**Actualización maliciosa de SolarWinds**:
+
+- Se sabe que los Estados/Naciones utilizan como vector de ataque los mecanismos de actualización, siendo un caso reciente de pública notoriedad el sufrido por SolarWinds Orion.
+- La compañía que desarrolla el software poseía procesos seguros de construcción y mecanismos de integridad en sus actualizaciones.
+- Estos fueron comprometidos y, durante varios meses, la firma distribuyó una actualización maliciosa a más de 18.000 organizaciones, de las cuales alrededor de un centenar se vieron afectadas.
+- Se trata de una de las brechas de este tipo de mayor alcance y más importantes de la historia.
+
+#### 3
+
+**Python JSON Logger (CVE-2025-27607)**
+
+- Entre diciembre 2024 a marzo de 2025, el paquete Python JSON Logger fue vulnerable a ejecución remota de código debido a una dependencia faltante.
+- Esto ocurrió porque el paquete `msgspec-python313-pre` fue eliminado por su propietario, dejando el nombre disponible para ser reclamado por un tercero.
+- Impacto: Si un atacante reclamaba el nombre del paquete, podía ejecutar código arbitrario en cualquier usuario que instalara las dependencias de desarrollo.
+
+#### 4
+
+**Deserialización insegura**:
+
+- Una aplicación React utiliza un conjunto de microservicios implementados en Spring Boot.
+- Tratándose de programadores funcionales, intentaron asegurarse de que su código fuera inmutable.
+- La solución implementada consistió en serializar el estado de la sesión para el usuario y enviarlo entre los componentes en cada solicitud.
+- Un atacante advierte el uso de un objeto Java serializado y codificado en Base64 (identifica un string que comienza con "rO0").
+- Y utiliza la herramienta **Java Serial Killer** para obtener una ejecución remota de código en el servidor de aplicación.
+
+###
+
+###
+
+## A09-2021 - Fallas en el registro y monitoreo
+
+###
+
+###
+
+###
+
+###
+
+###
+
+###
+
+## LLMs
